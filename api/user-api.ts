@@ -8,7 +8,6 @@ const account = async(userdata: any, register: boolean) => {
   if(register && userdata.password !== userdata.confirmPassword){
     return {message: "Passwords do not match!", status: 400};
   }
-  console.log(url)
   try{
     const result = await axios.post(url, {
       usertag: userdata.usertag,
