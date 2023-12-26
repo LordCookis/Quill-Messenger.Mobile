@@ -30,18 +30,23 @@ export default function Login({setRegister}:any) {
   }
 
   const accountAction = async(action: boolean) => {
-    console.log(userInputs)
-    console.log(312)
-    const result = await account(userInputs, action)
-    if(result.status >= 400){ return }
-    console.log(312)
-    console.log(123, result.message, result.status)
-    passLoginScreen(result.data)
+    //console.log(userInputs)
+    //console.log(312)
+    //const result = await account(userInputs, action)
+    //if(result.status >= 400){ return }
+    //console.log(312)
+    //console.log(123, result.message, result.status)
+    //passLoginScreen(result.data)
+    passLoginScreen({
+      usertag: "LordCookis",
+      password: "12345678",
+      confirmPassword: "12345678",
+    })
   }
 
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
 
-  return (
+  return(
     <View style={styles.loginPage}>
       <Text style={styles.loginTitle}>Quill Messenger</Text>
       <View style={styles.tabContent}>

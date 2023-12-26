@@ -1,16 +1,16 @@
-import { StatusBar } from 'expo-status-bar'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StatusBar, StyleSheet } from 'react-native'
 import * as React from 'react'
 import { useEffect, useState } from "react"
 import { useAccountStore } from "./stores/account-store"
 import { useSocketStore } from './stores/socket-store'
 import useSocket from './hooks/use-socket'
 import Login from './components/Login'
+import ChatList from './components/ChatList'
 
 export default function App() {
   const [register, setRegister] = useState<boolean>(false)
-  const {usertag, setUser}: any = useAccountStore()
-  const {socket ,setSocket}: any = useSocketStore()
+  const {usertag, setUser}:any = useAccountStore()
+  const {socket, setSocket}:any = useSocketStore()
   const socketHook = useSocket()
 
   useEffect(()=>{
@@ -19,11 +19,13 @@ export default function App() {
 
   return (
     <>
+      <StatusBar backgroundColor={'#17191f'} barStyle={'light-content'}/>
       {!register ? 
       <Login setRegister = {setRegister}/> :
-      <View style={styles.container}><Pressable onPress={()=>setRegister(false)}>
+      /*<View style={styles.container}><Pressable onPress={()=>setRegister(false)}>
         <Text>Че доволен Ликер?</Text></Pressable>
-      </View>}
+      </View>*/
+      <ChatList register = {register} setRegister = {setRegister}/>}
     </>
   )
 }
