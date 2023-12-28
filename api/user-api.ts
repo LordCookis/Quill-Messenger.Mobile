@@ -1,12 +1,12 @@
 import { removeItem } from "../lib/async-storage"
 import axios from "axios"
 
-const api_url = 'http://localhost:4000/api'
+const api_url = 'http://192.168.1.194:4000/api'
 
 const account = async(userdata: any, register: boolean) => {
   const url = register ? `${api_url}/user/register` : `${api_url}/user/login`
   if(register && userdata.password !== userdata.confirmPassword){
-    return {message: "Passwords do not match!", status: 400};
+    return {message: "Passwords do not match!", status: 400}
   }
   try{
     const result = await axios.post(url, {
@@ -19,6 +19,7 @@ const account = async(userdata: any, register: boolean) => {
       status: 200,
     })
   } catch(err: any) {
+    console.log(err)
     return({
       data: null,
       message: err.response.data.message,
@@ -60,6 +61,8 @@ const fetchUserId = async(_id: string) => {
 }
 
 const fetchUserTag = async(usertag: string) => {
+  console.log(api_url)
+  //console.log(usertag)
   try{
     const result = await axios.get(`${api_url}/user/findtag/${usertag}`)
     return({

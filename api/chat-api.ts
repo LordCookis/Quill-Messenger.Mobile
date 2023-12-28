@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const api_url = 'http://localhost:4000/api'
+const api_url = 'http://192.168.1.194:4000/api'
 
 const getChats = async(_id: string) => {
   try{

@@ -6,6 +6,7 @@ import { useSocketStore } from './stores/socket-store'
 import useSocket from './hooks/use-socket'
 import Login from './components/Login'
 import ChatList from './components/ChatList'
+import Navbar from './components/Navbar'
 
 export default function App() {
   const [register, setRegister] = useState<boolean>(false)
@@ -25,7 +26,11 @@ export default function App() {
       /*<View style={styles.container}><Pressable onPress={()=>setRegister(false)}>
         <Text>Че доволен Ликер?</Text></Pressable>
       </View>*/
-      <ChatList register = {register} setRegister = {setRegister}/>}
+      <>
+        <ChatList setRegister = {setRegister}/>
+        <Navbar/>
+      </>
+      }
     </>
   )
 }

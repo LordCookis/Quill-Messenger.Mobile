@@ -2,12 +2,13 @@ import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native'
 import * as React from 'react'
 import { account } from "../api/user-api"
 import { getItem, setItem } from "../lib/async-storage"
+import Icon from "../assets/Icons"
 import { useAccountStore } from "../stores/account-store"
 import { useContext, useEffect, useState } from "react"
 import { inputFilter } from '../utils/input-filters'
 
 export default function Login({setRegister}:any) {
-  const [tab, setTab] = useState(true)
+  const [tab, setTab] = useState(false)
   //const warning:any = useContext(WarningContext)
   const {setUser}: any = useAccountStore()
   const [userInputs, setUserInputs] = useState({
@@ -21,7 +22,7 @@ export default function Login({setRegister}:any) {
   //  const userdata = getItem('userdata')
   //  if(!userdata){return}
   //  passLoginScreen(userdata)
-  //}, []) помогите
+  //}, [])
 
   const passLoginScreen = (userdata: any) => {
     setItem('userdata', userdata)
@@ -30,28 +31,19 @@ export default function Login({setRegister}:any) {
   }
 
   const accountAction = async(action: boolean) => {
-    //console.log(userInputs)
-    //console.log(312)
-    //const result = await account(userInputs, action)
-    //if(result.status >= 400){ return }
-    //console.log(312)
-    //console.log(123, result.message, result.status)
-    //passLoginScreen(result.data)
-    passLoginScreen({
-      usertag: "LordCookis",
-      password: "12345678",
-      confirmPassword: "12345678",
-    })
+    const result = await account(userInputs, action)
+    if(result.status >= 400){ return }
+    passLoginScreen(result.data)
   }
 
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
 
   return(
     <View style={styles.loginPage}>
-      <Text style={styles.loginTitle}>Quill Messenger</Text>
+      <Text style={styles.loginTitle}><Icon.Quill/>Quill Messenger</Text>
       <View style={styles.tabContent}>
-        <Pressable><Text onPress={()=>setTab(true)} style={tab ? styles.activeTab : styles.tabButton}>Login</Text></Pressable>
-        <Pressable><Text onPress={()=>setTab(false)} style={!tab ? styles.activeTab : styles.tabButton}>Register</Text></Pressable>
+        <Pressable><Text onPress={()=>setTab(false)} style={!tab ? styles.activeTab : styles.tabButton}>Login</Text></Pressable>
+        <Pressable><Text onPress={()=>setTab(true)} style={tab ? styles.activeTab : styles.tabButton}>Register</Text></Pressable>
       </View>
       <View style={styles.loginContent}>
         <TextInput
@@ -68,22 +60,24 @@ export default function Login({setRegister}:any) {
           placeholder='Password'
           placeholderTextColor={'#ccc'}
           inputMode='text'
+          secureTextEntry={true}
           onFocus={() => handleFocus(2)}
         />
-        {tab || <TextInput
+        {!tab || <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, confirmPassword: inputFilter(e)})}
           style={[styles.loginInput, {backgroundColor: inputFocus === 3 ? '#9385ca50' : '#9385ca00'}]}
           placeholder='Confirm password'
           placeholderTextColor={'#ccc'}
           inputMode='text'
+          secureTextEntry={true}
           onFocus={() => handleFocus(3)}
         />}
         <Pressable><Text 
           onPress={tab ? ()=>accountAction(true) : ()=>accountAction(false)}
           style={styles.loginButton}
-        >{tab ? "Login" : "Register"}</Text></Pressable>
+        >{tab ? "Register" : "Login"}</Text></Pressable>
       </View>
-      {tab || <View>
+      {!tab || <View>
         {userInputs.usertag.length < 3 ? <Text style={styles.warningLabels}>* Usertag must be longer than 3 characters!</Text> : <></>}
         {userInputs.usertag.length > 30 ? <Text  style={styles.warningLabels}>* Usertag must be no more than 30 characters long!</Text> : <></>}
         {userInputs.password.length < 8 ? <Text  style={styles.warningLabels}>* Password must be longer than 8 characters!</Text> : <></>}
