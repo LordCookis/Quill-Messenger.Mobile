@@ -42,7 +42,7 @@ export default function Navbar(){
         <Link to="/add-friends">{activePage == "/add-friends" ? <Icon.PeopleActive/> : <Icon.People />}</Link>
         <Link to="/discover">{activePage == "/discover" ? <Icon.DiscoverActive/> : <Icon.Discover />}</Link>
         <Link to="/settings">{activePage == "/settings" ? <Icon.SettingsActive/> : <Icon.Settings />}</Link>
-        <Link onPress={()=>console.log("Не смотреть!!!")} to="#"><Icon.Logout/></Link>
+        <Link to="/" onPress={leave}><Icon.Logout/></Link>
         <View style={styles.hr}/>
         <Link to="/profile">
           {user.avatar ? <Image

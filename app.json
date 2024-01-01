@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Quill-Messenger.Mobile-main",
-    "slug": "Quill-Messenger.Mobile-main",
+    "name": "Quill-Messenger.Mobile",
+    "slug": "Quill-Messenger.Mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

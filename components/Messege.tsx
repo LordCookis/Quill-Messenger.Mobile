@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { View, Image, Text, StyleSheet, Dimensions } from 'react-native'
+import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
 import { useEffect, useState } from 'react'
 import { fetchUserId } from '../api/user-api'
 import { useChatStore } from '../stores/chat-store'
 import Icon from '../assets/Icons'
 
-export default function Message({chat, user}: any){
+export default function Message({chat, user, navigation}:any){
   const [userData, setUserData]: any = useState()
   const {setActiveChat}: any = useChatStore()
   
@@ -17,6 +17,7 @@ export default function Message({chat, user}: any){
 
   const selectChat = () => {
     setActiveChat({chat: chat, friend: userData})
+    navigation.navigate('ChatBox', {chatID: chat._id})
   }
 
   useEffect(()=>{
@@ -24,6 +25,7 @@ export default function Message({chat, user}: any){
   }, [userData])
 
   return(
+    <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
       <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: userData?.avatar}}/>
       <View style={styles.messageContent}>
@@ -37,6 +39,7 @@ export default function Message({chat, user}: any){
         </View>
       </View>
     </View>
+    </Pressable>
   )
 }
 

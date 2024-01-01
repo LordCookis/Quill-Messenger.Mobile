@@ -6,8 +6,9 @@ import Icon from "../assets/Icons"
 import { useAccountStore } from "../stores/account-store"
 import { useContext, useEffect, useState } from "react"
 import { inputFilter } from '../utils/input-filters'
+import ChatList from './ChatList'
 
-export default function Login({setRegister}:any) {
+export default function Login({navigation}:any) {
   const [tab, setTab] = useState(false)
   //const warning:any = useContext(WarningContext)
   const {setUser}: any = useAccountStore()
@@ -17,6 +18,7 @@ export default function Login({setRegister}:any) {
     confirmPassword: "",
   })
   const [inputFocus, setInputFocus] = useState<number>(0)
+  const [register, setRegister] = useState<boolean>(false)
 
   //useEffect(()=>{
   //  const userdata = getItem('userdata')
@@ -39,6 +41,7 @@ export default function Login({setRegister}:any) {
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
 
   return(
+    <>{!register ? 
     <View style={styles.loginPage}>
       <Text style={styles.loginTitle}><Icon.Quill/>Quill Messenger</Text>
       <View style={styles.tabContent}>
@@ -84,6 +87,7 @@ export default function Login({setRegister}:any) {
         {userInputs.password !== userInputs.confirmPassword ? <Text style={styles.warningLabels}>* Passwords do not match!</Text> : <></>}
       </View>}
     </View>
+    : <ChatList navigation={navigation}/>}</>
   )
 }
 

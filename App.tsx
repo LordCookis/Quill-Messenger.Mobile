@@ -6,32 +6,30 @@ import { useSocketStore } from './stores/socket-store'
 import useSocket from './hooks/use-socket'
 import Login from './components/Login'
 import ChatList from './components/ChatList'
-import Navbar from './components/Navbar'
+import ChatBox from './components/ChatBox'
+import { NavigationContainer } from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 export default function App() {
   const [register, setRegister] = useState<boolean>(false)
   const {usertag, setUser}:any = useAccountStore()
   const {socket, setSocket}:any = useSocketStore()
   const socketHook = useSocket()
+  const Stack = createNativeStackNavigator()
 
   useEffect(()=>{
     !socket && socketHook.io && setSocket(socketHook)
   }, [socketHook])
 
   return (
-    <>
+    <NavigationContainer>
       <StatusBar backgroundColor={'#17191f'} barStyle={'light-content'}/>
-      {!register ? 
-      <Login setRegister = {setRegister}/> :
-      /*<View style={styles.container}><Pressable onPress={()=>setRegister(false)}>
-        <Text>Че доволен Ликер?</Text></Pressable>
-      </View>*/
-      <>
-        <ChatList setRegister = {setRegister}/>
-        <Navbar/>
-      </>
-      }
-    </>
+      <Stack.Navigator initialRouteName='Login'>
+        <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
+        {/*<Stack.Screen name='ChatList' component={ChatList} options={{ headerShown: false }}></Stack.Screen>*/}
+        <Stack.Screen name='ChatBox' component={ChatBox} options={{ headerShown: false }}></Stack.Screen>
+      </Stack.Navigator>
+    </NavigationContainer>
   )
 }
 
