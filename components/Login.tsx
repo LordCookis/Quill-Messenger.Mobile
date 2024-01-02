@@ -6,7 +6,6 @@ import Icon from "../assets/Icons"
 import { useAccountStore } from "../stores/account-store"
 import { useContext, useEffect, useState } from "react"
 import { inputFilter } from '../utils/input-filters'
-import ChatList from './ChatList'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState(false)
@@ -29,7 +28,7 @@ export default function Login({navigation}:any) {
   const passLoginScreen = (userdata: any) => {
     setItem('userdata', userdata)
     setUser(userdata)
-    setRegister(true)
+    navigation.navigate('ChatList')
   }
 
   const accountAction = async(action: boolean) => {
@@ -41,9 +40,8 @@ export default function Login({navigation}:any) {
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
 
   return(
-    <>{!register ? 
     <View style={styles.loginPage}>
-      <Text style={styles.loginTitle}><Icon.Quill/>Quill Messenger</Text>
+      <View style={styles.loginView}><Icon.Quill/><Text style={styles.loginTitle}>Quill Messenger</Text></View>
       <View style={styles.tabContent}>
         <Pressable><Text onPress={()=>setTab(false)} style={!tab ? styles.activeTab : styles.tabButton}>Login</Text></Pressable>
         <Pressable><Text onPress={()=>setTab(true)} style={tab ? styles.activeTab : styles.tabButton}>Register</Text></Pressable>
@@ -87,7 +85,6 @@ export default function Login({navigation}:any) {
         {userInputs.password !== userInputs.confirmPassword ? <Text style={styles.warningLabels}>* Passwords do not match!</Text> : <></>}
       </View>}
     </View>
-    : <ChatList navigation={navigation}/>}</>
   )
 }
 
@@ -104,16 +101,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
   },
-  loginTitle: {
+  loginView: {
     marginVertical: 15,
     width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    display: 'flex',
-    color: '#fff',
+  },
+  loginTitle: {
+    color: '#ffffff',
     fontFamily: 'monospace',
-    textAlign: 'center',
-    fontSize: 20,
+    fontSize: 25,
   },
   tabContent: {
     width: 315,
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontFamily: 'monospace',
     textAlign: 'center',
-    color: '#ccc',
+    color: '#cccccc',
     fontSize: 15,
   },
   warningLabels: {

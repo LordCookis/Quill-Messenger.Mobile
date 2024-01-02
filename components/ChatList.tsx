@@ -9,7 +9,6 @@ import { createChat, getChats } from '../api/chat-api'
 import { inputFilter } from '../utils/input-filters'
 import { fetchUserTag } from '../api/user-api'
 import { WarningContext } from '../lib/warning/warning-context'
-import { NativeRouter, Link, Route, Routes } from 'react-router-native'
 
 export default function ChatList({navigation}:any){
   const {userChats, setUserChats, addNewChat}:any = useChatStore()
@@ -48,32 +47,30 @@ export default function ChatList({navigation}:any){
   }, [user._id, userChats])
 
   return (
-    <NativeRouter>
-      <View style={styles.chatlist}>
-        <Text style={styles.chatHeader}>Messages</Text>
-        <View style={styles.searchBlock}>
-          <Pressable onPress={addNewUserChat} style={styles.createChat}>
-            <Icon.AddUser/>
-          </Pressable>
-          <TextInput
-            style={styles.searchInput}
-            onChangeText={(e) => setSearch(inputFilter(e))}
-            placeholder="Search by tag"
-            placeholderTextColor={'#2c2f38'}
-            inputMode="text"
-          />
-          <Pressable onPress={addNewUserChat} style={styles.createChat}>
-            <Icon.AddUser/>
-          </Pressable>
-        </View>
-        <View style={styles.block}>
-          <Text style={styles.legend}><Icon.Letter/> ALL MESSAGES</Text>
-          {userChats?.map((chat: any) => (
-            <Message key={chat._id} chat={chat} user={user} navigation={navigation}/>
-          ))}
-        </View>
+    <View style={styles.chatlist}>
+      <Text style={styles.chatHeader}>Messages</Text>
+      <View style={styles.searchBlock}>
+        <Pressable onPress={()=>{navigation.navigate('Menu')}}>
+          <Icon.AddUser/>
+        </Pressable>
+        <TextInput
+          style={styles.searchInput}
+          onChangeText={(e) => setSearch(inputFilter(e))}
+          placeholder="Search by tag"
+          placeholderTextColor={'#2c2f38'}
+          inputMode="text"
+        />
+        <Pressable onPress={addNewUserChat}>
+          <Icon.AddUser/>
+        </Pressable>
       </View>
-    </NativeRouter>
+      <View style={styles.block}>
+        <Text style={styles.legend}><Icon.Letter/> ALL MESSAGES</Text>
+        {userChats?.map((chat: any) => (
+          <Message key={chat._id} chat={chat} user={user} navigation={navigation}/>
+        ))}
+      </View>
+    </View>
   )
 }
 
@@ -108,7 +105,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     backgroundColor: "#1e2027",
   },
-  createChat: {},
   block: {
     flexDirection: 'column',
     alignItems: 'center',
