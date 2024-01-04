@@ -6,8 +6,8 @@ import { useChatStore } from '../stores/chat-store'
 import Icon from '../assets/Icons'
 
 export default function Message({chat, user, navigation}:any){
-  const [userData, setUserData]: any = useState()
-  const {setActiveChat}: any = useChatStore()
+  const [userData, setUserData]:any = useState()
+  const {setActiveChat}:any = useChatStore()
   
   const fetchData = async() => {
     const userID = chat.members[0] != user._id ? chat.members[0] : chat.members[1]

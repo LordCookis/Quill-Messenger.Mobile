@@ -10,26 +10,12 @@ import { updateProfile } from "../api/user-api"
 import { setItem } from "../lib/async-storage"
 import Icon from '../assets/Icons'
 
-export default function Menu({navigation}:any){
+export default function Menu({navigation, setTab}:any){
   const {status}:any = useSocketStore()
   const user:any = useAccountStore()
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
-  const {setUser} = useAccountStore()
-  const [newData, setNewData] = useState({
-    avatar: user.avatar,
-    displayedName: user.displayedName
-  })
 
-  const update = async() => {
-    const result = await updateProfile({_id: user._id, ...newData})
-    if(result.status >= 400){
-      warning.showWindow({title: "Couldn't update", message: `Something went wrong!: ${result.message}`});
-      return
-    }
-    setItem('userdata', result.data)
-    setUser(result.data)
-  }
   const leave = () => {
     logout()
     user.clearAccountStore()
@@ -38,46 +24,49 @@ export default function Menu({navigation}:any){
   }
 
   return(
-    <View style={styles.sidebar}>
-      <View style={styles.titleView}><Icon.Quill/><Text style={styles.titleText}>Quill Messenger</Text></View>
-      <View style={styles.userData}>
-          <Pressable>
-            {user.avatar ? <Image
+    <View style={styles.menu}>
+      <View style={styles.panel}>
+        <View style={styles.titleView}><Icon.Quill/><Text style={styles.titleText}>Quill Messenger</Text></View>
+          <View style={styles.userData}>
+            <View style={styles.linkUserImage}>
+              {user.avatar ? <Image
               style={styles.userImage}
               source={{uri:user.avatar}}
               alt="pfp"/> : <></>}
-          </Pressable>
-          <View>
-            <TextInput
-              style={styles.dataInput}
-              value={newData.displayedName}
-              placeholder={user.usertag}
-              onChangeText={(e)=>setNewData({...newData, displayedName: e})}
-            />
-            <TextInput
-              style={styles.dataInput}
-              value={newData.avatar}
-              onChangeText={(e)=>setNewData({...newData, avatar: e})}
-            />
+            </View>
+            <View>
+              <Text style={styles.displayedName}>{user.displayedName}</Text>
+              <Text style={styles.usertag}>{user.usertag}</Text>
+            </View>
           </View>
+        <View style={styles.buttons}>
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account', {user: user})}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('Interface')}><Icon.Settings/><Text style={styles.buttonText}> Интрефейс</Text></Pressable>
+          <Pressable style={styles.button} onPress={leave}><Icon.Logout/><Text style={[{color: 'coral',}]}> Выход</Text></Pressable>
         </View>
-        <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
-      <View style={styles.buttons}>
-        <Pressable style={styles.button}><Icon.Messages/><Text style={styles.buttonText}> Сообщения</Text></Pressable>
-        <Pressable style={styles.button}><Icon.People/><Text style={styles.buttonText}> Группы</Text></Pressable>
-        <Pressable style={styles.button}><Icon.Discover/><Text style={styles.buttonText}> Найти</Text></Pressable>
-        <Pressable style={styles.button}><Icon.Settings/><Text style={styles.buttonText}> Настройки</Text></Pressable>
-        <Pressable style={styles.button} onPress={leave}><Icon.Logout/><Text style={[{color: 'coral',}]}> Выход</Text></Pressable>
       </View>
+      <Pressable style={styles.back} onPress={()=>setTab(false)}></Pressable>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  sidebar: {
+  menu: {
+    position: 'absolute',
+    zIndex: 1,
     height: Dimensions.get('window').height,
     width: Dimensions.get('window').width,
+    flexDirection: 'row',
+  },
+  panel: {
+    width: '80%',
     backgroundColor: '#17191f',
+    borderRightWidth: 2,
+    borderColor: '#8d70ff',
+  },
+  back: {
+    width: '20%',
+    backgroundColor: '#8d70ff00',
   },
   titleView: {
     marginVertical: 15,
@@ -105,26 +94,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dataInput: {
-    width: 200,
-    margin: 5,
-    marginLeft: 15,
-    padding: 5,
-    fontSize: 15,
-    borderRadius: 10,
+  displayedName: {
+    fontSize: 25,
     color: '#ffffff',
-    backgroundColor: "#1e2027",
   },
-  saveButton: {
-    margin: 10,
-    padding: 10,
-    alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: "#57546150",
-  },
-  saveText: {
-    fontSize: 15,
-    color: '#ffffff',
+  usertag: {
+    fontSize: 20,
+    color: '#cccccc',
   },
   button: {
     width: '90%',
@@ -142,13 +118,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   linkUserImage: {
-    padding: 0,
-  },
-  userImage: {
-    height: 80,
-    width: 80,
+    marginRight: 10,
+    padding: 2,
     borderWidth: 2,
     borderRadius: 50,
     borderColor: '#8d70ff',
+  },
+  userImage: {
+    height: 70,
+    width: 70,
+    borderRadius: 50,
   },
 })

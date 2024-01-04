@@ -6,10 +6,11 @@ import Icon from "../assets/Icons"
 import { useAccountStore } from "../stores/account-store"
 import { useContext, useEffect, useState } from "react"
 import { inputFilter } from '../utils/input-filters'
+import { WarningContext } from '../lib/warning/warning-context'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState(false)
-  //const warning:any = useContext(WarningContext)
+  const warning:any = useContext(WarningContext)
   const {setUser}: any = useAccountStore()
   const [userInputs, setUserInputs] = useState({
     usertag: "",
@@ -17,21 +18,20 @@ export default function Login({navigation}:any) {
     confirmPassword: "",
   })
   const [inputFocus, setInputFocus] = useState<number>(0)
-  const [register, setRegister] = useState<boolean>(false)
 
   //useEffect(()=>{
   //  const userdata = getItem('userdata')
   //  if(!userdata){return}
-  //  passLoginScreen(userdata)
+  //  passLoginScreen(userdata) 
   //}, [])
 
-  const passLoginScreen = (userdata: any) => {
+  const passLoginScreen = (userdata:any) => {
     setItem('userdata', userdata)
     setUser(userdata)
     navigation.navigate('ChatList')
   }
 
-  const accountAction = async(action: boolean) => {
+  const accountAction = async(action:boolean) => {
     const result = await account(userInputs, action)
     if(result.status >= 400){ return }
     passLoginScreen(result.data)

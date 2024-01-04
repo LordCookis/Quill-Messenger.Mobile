@@ -41,7 +41,7 @@ export default function ChatBox({route}:any) {
     if(!messagesHistory.length){return}
     scrollViewRef.current?.scrollToEnd({
       animated: true,
-    });
+    })
   }, [messagesHistory.length])
 
   useEffect(()=>{
