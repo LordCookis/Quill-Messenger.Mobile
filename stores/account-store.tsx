@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 interface userData {
   _id: string,
@@ -17,7 +19,7 @@ type AccoutStore = {
   setUser: (arg0: userData) => void
 }
 
-export const useAccountStore = create<AccoutStore>()((set) => ({
+export const useAccountStore = create<AccoutStore>()(persist((set) => ({
   _id: "",
   avatar: "",
   usertag: "",
@@ -37,4 +39,7 @@ export const useAccountStore = create<AccoutStore>()((set) => ({
     displayedName: "",
     lastOnline: ""
   }))
+}),{
+  name: "userAccount",
+  storage: createJSONStorage(() => AsyncStorage),
 }))

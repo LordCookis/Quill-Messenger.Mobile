@@ -61,8 +61,6 @@ const fetchUserId = async(_id: string) => {
 }
 
 const fetchUserTag = async(usertag: string) => {
-  console.log(api_url)
-  //console.log(usertag)
   try{
     const result = await axios.get(`${api_url}/user/findtag/${usertag}`)
     return({

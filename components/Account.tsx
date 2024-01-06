@@ -6,11 +6,12 @@ import { setItem } from "../lib/async-storage"
 import { useAccountStore } from '../stores/account-store'
 import { WarningContext } from '../lib/warning/warning-context'
 
-export default function Account({route}:any){
-  const {user} = route.params
+export default function Account(){
+  const user = useAccountStore()
   const warning:any = useContext(WarningContext)
   const {setUser} = useAccountStore()
   const [newData, setNewData] = useState({
+    usertag: user.usertag,
     avatar: user.avatar,
     displayedName: user.displayedName
   })

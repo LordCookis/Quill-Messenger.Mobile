@@ -1,21 +1,16 @@
 import * as React from 'react'
-import { useContext, useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Dimensions, Pressable, Text, TextInput } from 'react-native'
+import { useContext } from 'react'
+import { StyleSheet, View, Image, Dimensions, Pressable, Text } from 'react-native'
 import { logout } from "../api/user-api"
-import { useSocketStore } from "../stores/socket-store"
 import { WarningContext } from "../lib/warning/warning-context"
 import { useAccountStore } from "../stores/account-store"
 import { useChatStore } from "../stores/chat-store"
-import { updateProfile } from "../api/user-api"
-import { setItem } from "../lib/async-storage"
 import Icon from '../assets/Icons'
 
 export default function Menu({navigation, setTab}:any){
-  const {status}:any = useSocketStore()
   const user:any = useAccountStore()
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
-
   const leave = () => {
     logout()
     user.clearAccountStore()
@@ -40,7 +35,7 @@ export default function Menu({navigation, setTab}:any){
             </View>
           </View>
         <View style={styles.buttons}>
-          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account', {user: user})}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Interface')}><Icon.Settings/><Text style={styles.buttonText}> Интрефейс</Text></Pressable>
           <Pressable style={styles.button} onPress={leave}><Icon.Logout/><Text style={[{color: 'coral',}]}> Выход</Text></Pressable>
         </View>

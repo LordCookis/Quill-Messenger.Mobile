@@ -3,26 +3,34 @@ import { useAccountStore } from '../stores/account-store'
 import * as React from 'react'
 import { useContext, useEffect, useState } from 'react'
 import { StyleSheet, Text, View, Pressable, TextInput, Dimensions } from 'react-native'
-import Message from './Messege'
-import Icon from "../assets/Icons"
 import { createChat, getChats } from '../api/chat-api'
-import { inputFilter } from '../utils/input-filters'
+import { inputFilter } from '../utils/input-filter'
 import { fetchUserTag } from '../api/user-api'
 import { WarningContext } from '../lib/warning/warning-context'
+import { SocketContext } from '../context/socket-context'
+import { Socket } from 'socket.io-client'
+import { tryCatch } from '../utils/try-catch'
+import { netRequestHandler } from '../utils/net-request-handler'
+import Message from './Messege'
+import Icon from "../assets/Icons"
 import Menu from './Menu'
 
 export default function ChatList({navigation}:any){
   const {userChats, setUserChats, addNewChat}:any = useChatStore()
-  const warning:any = useContext(WarningContext)
   const [search, setSearch] = useState<string>("")
+  const warning:any = useContext(WarningContext)
+  const socket: Socket | any = useContext(SocketContext)
   const user:any = useAccountStore()
   const [tab, setTab] = useState<boolean>(false)
   const [find, setFind] = useState<boolean>(false)
   const [focus, setFocus] = useState<boolean>(false)
 
   const fetchChats = async() => {
-    const result = await getChats(user._id)
-    setUserChats(result.data.chats)
+    tryCatch(async()=>{
+      const result = await netRequestHandler(getChats(user._id), warning)
+      console.log("Fetched chats", result)
+      setUserChats(result.data.chats)
+    })
   }
 
   const fetchGroups = async() => {
@@ -49,10 +57,10 @@ export default function ChatList({navigation}:any){
   }
 
   useEffect(()=>{
-    !userChats.length && user._id && !focus ? fetchChats() : fetchGroups()
-  }, [user._id, focus])
+    !userChats.length && user._id && socket?.connected && !focus ? fetchChats() : fetchGroups()
+  }, [user._id, socket?.connected, focus])
 
-  return (
+  return(
     <>
     {tab && <Menu navigation={navigation} setTab={setTab}/>}
     <View style={styles.chatlist}>
@@ -76,12 +84,12 @@ export default function ChatList({navigation}:any){
       <View style={styles.block}>
         <Text style={styles.legend}><Icon.Letter/> ALL MESSAGES</Text>
         <View style={styles.type}>
-          <Pressable style={!focus && styles.typeFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>Сообщения</Text></Pressable>
-          <Pressable style={focus && styles.typeFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>Группы</Text></Pressable>
+          <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
+          <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
         </View>
-        {userChats?.map((chat:any, index:number) => (
+        {userChats?.map((chat:any) => (
           <>
-          <Message key={chat._id + index} chat={chat} user={user} navigation={navigation}/>
+          <Message key={chat._id} chat={chat} navigation={navigation}/>
           </>
         ))}
       </View>
@@ -143,8 +151,15 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   typeFocus: {
+    flex: 1,
     borderBottomWidth: 1.5,
     borderBottomColor: '#8d70ff',
+    alignItems: 'center',
+  },
+  typeNoFocus: {
+    flex: 1,
+    paddingBottom: 1.5,
+    alignItems: 'center',
   },
   typeText: {
     margin: 10,

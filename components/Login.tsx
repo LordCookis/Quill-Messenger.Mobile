@@ -5,13 +5,14 @@ import { getItem, setItem } from "../lib/async-storage"
 import Icon from "../assets/Icons"
 import { useAccountStore } from "../stores/account-store"
 import { useContext, useEffect, useState } from "react"
-import { inputFilter } from '../utils/input-filters'
+import { inputFilter } from '../utils/input-filter'
 import { WarningContext } from '../lib/warning/warning-context'
+import SocketWrapper from '../context/socket-context'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState(false)
   const warning:any = useContext(WarningContext)
-  const {setUser}: any = useAccountStore()
+  const {user, setUser}:any = useAccountStore()
   const [userInputs, setUserInputs] = useState({
     usertag: "",
     password: "",
@@ -28,7 +29,7 @@ export default function Login({navigation}:any) {
   const passLoginScreen = (userdata:any) => {
     setItem('userdata', userdata)
     setUser(userdata)
-    navigation.navigate('ChatList')
+    navigation.navigate('ChatList', {user: userdata})
   }
 
   const accountAction = async(action:boolean) => {

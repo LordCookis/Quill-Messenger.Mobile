@@ -1,36 +1,48 @@
 import * as React from 'react'
 import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { fetchUserId } from '../api/user-api'
 import { useChatStore } from '../stores/chat-store'
+import { useAccountStore } from '../stores/account-store'
+import { Socket } from 'socket.io-client'
+import { SocketContext } from '../context/socket-context'
+import { WarningContext } from '../lib/warning/warning-context'
+import { tryCatch } from '../utils/try-catch'
+import { netRequestHandler } from '../utils/net-request-handler'
 import Icon from '../assets/Icons'
 
-export default function Message({chat, user, navigation}:any){
-  const [userData, setUserData]:any = useState()
-  const {setActiveChat}:any = useChatStore()
+export default function Message({chat, navigation}:any){
+  const [OpponentData, setOpponentData]: any = useState()
+  const {setActiveChat}: any = useChatStore()
+  const socket: Socket | any = useContext(SocketContext)
+  const user = useAccountStore()
+  const warning: any = useContext(WarningContext)
   
   const fetchData = async() => {
+    if(!socket?.connected){return}
     const userID = chat.members[0] != user._id ? chat.members[0] : chat.members[1]
-    const result = await fetchUserId(userID)
-    setUserData(result.data)
+    tryCatch(async()=>{
+      const result = await netRequestHandler(fetchUserId(userID), warning)
+      setOpponentData(result.data)
+    })
   }
 
   const selectChat = () => {
-    setActiveChat({chat: chat, friend: userData})
-    navigation.navigate('ChatBox', {chatID: chat._id})
+    setActiveChat({chat: chat, friend: OpponentData})
+    navigation.navigate('ChatBox', {ChatID: chat._id})
   }
 
   useEffect(()=>{
-    !userData && fetchData()
-  }, [userData])
+    !OpponentData && fetchData()
+  }, [OpponentData, socket?.connected])
 
   return(
     <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
-      <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: userData?.avatar}}/>
+      <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: OpponentData?.avatar}}/>
       <View style={styles.messageContent}>
         <View style={styles.top}>
-          <Text style={styles.name}>{userData?.displayedName}</Text>
+          <Text style={styles.name}>{OpponentData?.displayedName}</Text>
           <Text style={styles.time}>12:00 AM</Text>
         </View>
         <View style={styles.bottom}>
