@@ -7,24 +7,28 @@ import { useAccountStore } from "../stores/account-store"
 import { useContext, useEffect, useState } from "react"
 import { inputFilter } from '../utils/input-filter'
 import { WarningContext } from '../lib/warning/warning-context'
-import SocketWrapper from '../context/socket-context'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState(false)
   const warning:any = useContext(WarningContext)
-  const {user, setUser}:any = useAccountStore()
+  const {setUser}:any = useAccountStore()
   const [userInputs, setUserInputs] = useState({
     usertag: "",
     password: "",
     confirmPassword: "",
   })
   const [inputFocus, setInputFocus] = useState<number>(0)
+  const [rawInput, setRawInput] = useState('')
 
   //useEffect(()=>{
   //  const userdata = getItem('userdata')
   //  if(!userdata){return}
   //  passLoginScreen(userdata) 
   //}, [])
+
+  useEffect(() => {
+    setUserInputs({...userInputs, usertag: inputFilter(rawInput)})
+  }, [rawInput])
 
   const passLoginScreen = (userdata:any) => {
     setItem('userdata', userdata)
@@ -49,30 +53,33 @@ export default function Login({navigation}:any) {
       </View>
       <View style={styles.loginContent}>
         <TextInput
-          onChangeText={(e)=>setUserInputs({...userInputs, usertag: inputFilter(e)})}
+          onChangeText={(e) => setRawInput(e)}
+          value={userInputs.usertag}
           style={[styles.loginInput, {backgroundColor: inputFocus === 1 ? '#9385ca50' : '#9385ca00'}]}
           placeholder='User Tag'
-          placeholderTextColor={'#ccc'}
+          placeholderTextColor={'#cccccc'}
           inputMode='text'
-          onFocus={() => handleFocus(1)}
+          onFocus={()=>handleFocus(1)}
         />
         <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, password: inputFilter(e)})}
+          value={userInputs.password}
           style={[styles.loginInput, {backgroundColor: inputFocus === 2 ? '#9385ca50' : '#9385ca00'}]}
           placeholder='Password'
-          placeholderTextColor={'#ccc'}
+          placeholderTextColor={'#cccccc'}
           inputMode='text'
           secureTextEntry={true}
-          onFocus={() => handleFocus(2)}
+          onFocus={()=>handleFocus(2)}
         />
         {!tab || <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, confirmPassword: inputFilter(e)})}
+          value={userInputs.confirmPassword}
           style={[styles.loginInput, {backgroundColor: inputFocus === 3 ? '#9385ca50' : '#9385ca00'}]}
           placeholder='Confirm password'
-          placeholderTextColor={'#ccc'}
+          placeholderTextColor={'#cccccc'}
           inputMode='text'
           secureTextEntry={true}
-          onFocus={() => handleFocus(3)}
+          onFocus={()=>handleFocus(3)}
         />}
         <Pressable><Text 
           onPress={tab ? ()=>accountAction(true) : ()=>accountAction(false)}
@@ -122,25 +129,24 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 25,
     overflow: 'hidden',
   },
   tabButton: {
-    minWidth: 150,
+    width: 158,
     paddingVertical: 5,
-    paddingHorizontal: 50,
     backgroundColor: '#776ca550',
-    color: '#fff',
+    color: '#ffffff',
     fontFamily: 'monospace',
     textAlign: 'center',
     fontSize: 15,
   },
   activeTab: {
-    minWidth: 150,
+    width: 158,
     paddingVertical: 5,
-    paddingHorizontal: 50,
     backgroundColor: '#9385ca50',
-    color: '#fff',
+    color: '#ffffff',
     fontFamily: 'monospace',
     textAlign: 'center',
     fontSize: 15,

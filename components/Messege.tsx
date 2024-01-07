@@ -9,14 +9,21 @@ import { SocketContext } from '../context/socket-context'
 import { WarningContext } from '../lib/warning/warning-context'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
+import { useMessageStore } from '../stores/messages-store'
 import Icon from '../assets/Icons'
 
 export default function Message({chat, navigation}:any){
-  const [OpponentData, setOpponentData]: any = useState()
-  const {setActiveChat}: any = useChatStore()
+  const [OpponentData, setOpponentData]:any = useState()
+  const {setActiveChat}:any = useChatStore()
+  const {messagesHistory}:any = useMessageStore()
   const socket: Socket | any = useContext(SocketContext)
   const user = useAccountStore()
   const warning: any = useContext(WarningContext)
+  const [messageData, setMessageData] = useState({
+    senderID: "",
+    text: "",
+    time: "",
+  })
   
   const fetchData = async() => {
     if(!socket?.connected){return}
@@ -33,6 +40,16 @@ export default function Message({chat, navigation}:any){
   }
 
   useEffect(()=>{
+    if(!messagesHistory[chat._id]?.length){return}
+    const timeDate = new Date(messagesHistory[chat._id][messagesHistory[chat._id].length-1].createdAt)
+    setMessageData({
+      senderID: messagesHistory[chat._id][messagesHistory[chat._id].length-1].senderID,
+      text: messagesHistory[chat._id][messagesHistory[chat._id].length-1].text,
+      time: `${timeDate.getHours()}:${timeDate.getMinutes() < 10 ? "0" + timeDate.getMinutes() : timeDate.getMinutes()}`
+    })
+  }, [messagesHistory[chat._id]])
+
+  useEffect(()=>{
     !OpponentData && fetchData()
   }, [OpponentData, socket?.connected])
 
@@ -43,10 +60,10 @@ export default function Message({chat, navigation}:any){
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{OpponentData?.displayedName}</Text>
-          <Text style={styles.time}>12:00 AM</Text>
+          <Text style={styles.time}>{messageData?.time?.length ? messageData.time : ""}</Text>
         </View>
         <View style={styles.bottom}>
-          <Text style={styles.message}>Сообщеньеце</Text>
+        <Text style={styles.message}><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>{messageData?.text?.length ? messageData.text : "No messages yet..."}</Text>
           <Text style={styles.status}><Icon.DoubleCheck/></Text>
         </View>
       </View>
@@ -89,7 +106,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   message: {
-    color: '#808080'
+    color: '#808080',
   },
-  status: {},
+  sentFromMe: {
+    color: '#c577e4',
+  },
+  status: {
+    marginTop: 5,
+  },
 })
