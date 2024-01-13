@@ -1,12 +1,14 @@
-import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native'
 import * as React from 'react'
-import { account } from "../api/user-api"
-import { getItem, setItem } from "../lib/async-storage"
-import Icon from "../assets/Icons"
-import { useAccountStore } from "../stores/account-store"
+import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native'
 import { useContext, useEffect, useState } from "react"
-import { inputFilter } from '../utils/input-filter'
+import Icon from "../assets/Icons"
+import { loginAPI, registerAPI } from "../api/user-api"
+import { getItem, setItem } from "../lib/async-storage"
+import { useAccountStore } from "../stores/account-store"
 import { WarningContext } from '../lib/warning/warning-context'
+import { inputFilter } from '../utils/input-filter'
+import { tryCatch } from '../utils/try-catch'
+import { netRequestHandler } from '../utils/net-request-handler'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState(false)
@@ -20,12 +22,6 @@ export default function Login({navigation}:any) {
   const [inputFocus, setInputFocus] = useState<number>(0)
   const [rawInput, setRawInput] = useState('')
 
-  //useEffect(()=>{
-  //  const userdata = getItem('userdata')
-  //  if(!userdata){return}
-  //  passLoginScreen(userdata) 
-  //}, [])
-
   useEffect(() => {
     setUserInputs({...userInputs, usertag: inputFilter(rawInput)})
   }, [rawInput])
@@ -33,13 +29,27 @@ export default function Login({navigation}:any) {
   const passLoginScreen = (userdata:any) => {
     setItem('userdata', userdata)
     setUser(userdata)
-    navigation.navigate('ChatList', {user: userdata})
+    navigation.navigate('DialogList', {user: userdata})
   }
 
-  const accountAction = async(action:boolean) => {
-    const result = await account(userInputs, action)
-    if(result.status >= 400){ return }
-    passLoginScreen(result.data)
+  useEffect(()=>{
+    const userdata = getItem('userdata')
+    if(!userdata){return}
+    passLoginScreen(userdata) 
+  }, [])
+
+  const registerNewAccount = async() => {
+    tryCatch(async()=>{
+      const result = await netRequestHandler(registerAPI(userInputs), warning)
+      passLoginScreen(result.data)
+    })
+  }
+
+  const loginAccount = async() => {
+    tryCatch(async()=>{
+      const result = await netRequestHandler(loginAPI(userInputs), warning)
+      passLoginScreen(result.data)
+    })
   }
 
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
@@ -82,7 +92,7 @@ export default function Login({navigation}:any) {
           onFocus={()=>handleFocus(3)}
         />}
         <Pressable><Text 
-          onPress={tab ? ()=>accountAction(true) : ()=>accountAction(false)}
+          onPress={tab ? registerNewAccount : loginAccount}
           style={styles.loginButton}
         >{tab ? "Register" : "Login"}</Text></Pressable>
       </View>

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ComponentProps } from 'react'
 import Svg, { Path, G } from "react-native-svg"
+import { Image } from 'react-native'
 
 interface IconProps extends ComponentProps<'svg'> {}
 
@@ -125,6 +126,10 @@ const Loading = (props: IconProps) => {
     </Svg>
   )
 }
+
+const AnimatedPen = (props: IconProps) => {
+  return(<Image source={{uri: "/animated/anim-pen.apng"}} alt="pen" width={19} height={19}/>)
+}
 // strokeWidth
 // strokeLinecap
 // strokeLinejoin
@@ -134,7 +139,7 @@ const Icon = {
   PeopleActive, Settings, SettingsActive,
   Logout, Discover, DiscoverActive, Pin,
   Letter, DoubleCheck, AddUser, SendArrow,
-  Loading,
+  Loading, AnimatedPen,
 }
 
 export default Icon

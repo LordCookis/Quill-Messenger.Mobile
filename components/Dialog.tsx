@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
 import { useEffect, useState, useContext } from 'react'
-import { fetchUserId } from '../api/user-api'
+import Icon from '../assets/Icons'
+import { fetchUserByIdAPI } from '../api/user-api'
 import { useChatStore } from '../stores/chat-store'
 import { useAccountStore } from '../stores/account-store'
 import { Socket } from 'socket.io-client'
@@ -9,13 +10,10 @@ import { SocketContext } from '../context/socket-context'
 import { WarningContext } from '../lib/warning/warning-context'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
-import { useMessageStore } from '../stores/messages-store'
-import Icon from '../assets/Icons'
 
-export default function Message({chat, navigation}:any){
-  const [OpponentData, setOpponentData]:any = useState()
-  const {setActiveChat}:any = useChatStore()
-  const {messagesHistory}:any = useMessageStore()
+export default function Dialog({chat, chatStore, navigation}:any){
+  const [opponentData, setOpponentData]:any = useState()
+  const {setActiveChat, activeChat}:any = useChatStore()
   const socket: Socket | any = useContext(SocketContext)
   const user = useAccountStore()
   const warning: any = useContext(WarningContext)
@@ -25,46 +23,54 @@ export default function Message({chat, navigation}:any){
     time: "",
   })
   
-  const fetchData = async() => {
-    if(!socket?.connected){return}
+  const selectChat = () => {
+    setActiveChat({chat: chat, friend: opponentData})
+    navigation.navigate('Chat', {chatID: chat._id})
+  }
+
+  useEffect(()=>{
+    if(opponentData || !socket?.connected){return}
     const userID = chat.members[0] != user._id ? chat.members[0] : chat.members[1]
     tryCatch(async()=>{
-      const result = await netRequestHandler(fetchUserId(userID), warning)
+      const result = await netRequestHandler(fetchUserByIdAPI(userID), warning)
       setOpponentData(result.data)
     })
-  }
-
-  const selectChat = () => {
-    setActiveChat({chat: chat, friend: OpponentData})
-    navigation.navigate('ChatBox', {ChatID: chat._id})
-  }
+  }, [opponentData, socket?.connected])
 
   useEffect(()=>{
-    if(!messagesHistory[chat._id]?.length){return}
-    const timeDate = new Date(messagesHistory[chat._id][messagesHistory[chat._id].length-1].createdAt)
+    if(!chatStore?.messages?.length){return}
+    const timeDate = new Date(chatStore?.messages[chatStore?.messages.length-1].createdAt)
     setMessageData({
-      senderID: messagesHistory[chat._id][messagesHistory[chat._id].length-1].senderID,
-      text: messagesHistory[chat._id][messagesHistory[chat._id].length-1].text,
+      senderID: chatStore?.messages[chatStore?.messages.length-1].senderID,
+      text: chatStore?.messages[chatStore?.messages.length-1].text,
       time: `${timeDate.getHours()}:${timeDate.getMinutes() < 10 ? "0" + timeDate.getMinutes() : timeDate.getMinutes()}`
     })
-  }, [messagesHistory[chat._id]])
+  }, [chatStore])
 
-  useEffect(()=>{
-    !OpponentData && fetchData()
-  }, [OpponentData, socket?.connected])
+  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
+  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{chatStore?.inputMessage}</>
+  const Message = () => <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
+  {messageData?.text?.length ? messageData.text : "No messages yet..."}</>
 
   return(
     <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
-      <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: OpponentData?.avatar}}/>
+      {opponentData?.avatar ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: opponentData?.avatar}} alt="pfp"/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
-          <Text style={styles.name}>{OpponentData?.displayedName}</Text>
+          <Text style={styles.name}>{opponentData?.displayedName}</Text>
           <Text style={styles.time}>{messageData?.time?.length ? messageData.time : ""}</Text>
         </View>
         <View style={styles.bottom}>
-        <Text style={styles.message}><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>{messageData?.text?.length ? messageData.text : "No messages yet..."}</Text>
-          <Text style={styles.status}><Icon.DoubleCheck/></Text>
+          <Text style={styles.message}>
+            {chatStore?.isTyping ?
+              <Typing/> :
+              chatStore?.inputMessage.length && activeChat.chat._id != chat._id ?
+                <Draft/> :
+                <Message/>
+            }
+          </Text>
+          <Text style={styles.status}>0</Text>
         </View>
       </View>
     </View>
@@ -114,4 +120,14 @@ const styles = StyleSheet.create({
   status: {
     marginTop: 5,
   },
+  typing: {
+    color: '#c577e4',
+    position: 'absolute',
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: 4,
+  },
+  draft: {
+    color: '#e73f3f',
+  }
 })

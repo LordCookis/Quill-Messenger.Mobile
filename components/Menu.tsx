@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useContext } from 'react'
 import { StyleSheet, View, Image, Dimensions, Pressable, Text } from 'react-native'
-import { logout } from "../api/user-api"
+import { logoutAPI } from "../api/user-api"
 import { WarningContext } from "../lib/warning/warning-context"
 import { useAccountStore } from "../stores/account-store"
 import { useChatStore } from "../stores/chat-store"
@@ -12,7 +12,7 @@ export default function Menu({navigation, setTab}:any){
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
   const leave = () => {
-    logout()
+    logoutAPI()
     user.clearAccountStore()
     chat.clearChatStore()
     navigation.navigate('Login')

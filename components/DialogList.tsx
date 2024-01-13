@@ -1,33 +1,44 @@
+import * as React from 'react'
+import { StyleSheet, Text, View, Pressable, TextInput, Dimensions } from 'react-native'
+import { useContext, useEffect, useState } from 'react'
+import Icon from "../assets/Icons"
+import Menu from './Menu'
+import Dialog from './Dialog'
 import { useChatStore } from '../stores/chat-store'
 import { useAccountStore } from '../stores/account-store'
-import * as React from 'react'
-import { useContext, useEffect, useState } from 'react'
-import { StyleSheet, Text, View, Pressable, TextInput, Dimensions } from 'react-native'
-import { createChat, getChats } from '../api/chat-api'
+import { useMessageStore } from '../stores/messages-store'
+import { createNewChatAPI, fetchUserChatsAPI } from '../api/chat-api'
 import { inputFilter } from '../utils/input-filter'
-import { fetchUserTag } from '../api/user-api'
+import { fetchUserByTagAPI } from '../api/user-api'
 import { WarningContext } from '../lib/warning/warning-context'
 import { SocketContext } from '../context/socket-context'
 import { Socket } from 'socket.io-client'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
-import Message from './Messege'
-import Icon from "../assets/Icons"
-import Menu from './Menu'
 
-export default function ChatList({navigation}:any){
+export default function DialogList({navigation}:any){
   const {userChats, setUserChats, addNewChat}:any = useChatStore()
+  const {messagesHistory}: any = useMessageStore()
   const [search, setSearch] = useState<string>("")
-  const warning:any = useContext(WarningContext)
+  const [rawInput, setRawInput] = useState('')
   const socket: Socket | any = useContext(SocketContext)
+  const warning:any = useContext(WarningContext)
   const user:any = useAccountStore()
   const [tab, setTab] = useState<boolean>(false)
   const [find, setFind] = useState<boolean>(false)
   const [focus, setFocus] = useState<boolean>(false)
 
+  useEffect(()=>{
+    !userChats.length && user._id && socket?.connected && !focus ? fetchChats() : fetchGroups()
+  }, [user._id, socket?.connected, focus])
+
+  useEffect(() => {
+    setSearch(inputFilter(rawInput))
+  }, [rawInput])
+
   const fetchChats = async() => {
     tryCatch(async()=>{
-      const result = await netRequestHandler(getChats(user._id), warning)
+      const result = await netRequestHandler(fetchUserChatsAPI(user._id), warning)
       console.log("Fetched chats", result)
       setUserChats(result.data.chats)
     })
@@ -37,28 +48,20 @@ export default function ChatList({navigation}:any){
     setUserChats([])
   }
 
-  const addNewUserChat = async() => {
-    if(search == user._id) { return }
-    const secondUser = await fetchUserTag(search)
-    if(secondUser.status >= 400){
-      //warning.showWindow({title: `User doesn't exist`, message: `The user "${search}" you've been searching for doesn't exist :<`})
-      alert("Ощипка")
-      return
-    }
-    const doesChatExist = userChats.filter((chat: any) => {
-      if(chat.members[0] == secondUser.data._id || chat.members[1] == secondUser.data._id){
-        console.log("FOUND THE SAME CHAT, REDIRECTING")
-        return true
-      }
+  const createNewChat = async() => {
+    if(search == user.usertag){return}
+    tryCatch(async()=>{
+      const secondUser = await netRequestHandler(fetchUserByTagAPI(search), warning)
+      const doesChatExist = userChats.filter((chat: any) => {
+        if(chat.members[0] == secondUser.data._id || chat.members[1] == secondUser.data._id){
+          return true
+        }
+      })
+      if(doesChatExist.length){return}
+      const newChat = await netRequestHandler(createNewChatAPI(user._id, secondUser.data._id), warning)
+      addNewChat(newChat.data)
     })
-    if(doesChatExist.length){return}
-    const newChat = await createChat(user._id, secondUser.data._id)
-    addNewChat(newChat.data)
   }
-
-  useEffect(()=>{
-    !userChats.length && user._id && socket?.connected && !focus ? fetchChats() : fetchGroups()
-  }, [user._id, socket?.connected, focus])
 
   return(
     <>
@@ -71,13 +74,14 @@ export default function ChatList({navigation}:any){
         {find ? 
         <TextInput
           style={styles.searchInput}
-          onChangeText={(e) => setSearch(inputFilter(e))}
+          value={search}
+          onChangeText={(e) => setRawInput(e)}
           placeholder="Search by tag"
           placeholderTextColor={'#2c2f38'}
           inputMode="text"
         /> : 
         <Pressable onPress={()=>setFind(true)}><Text style={styles.chatHeader}>Messages</Text></Pressable>}
-        <Pressable onPress={addNewUserChat}>
+        <Pressable onPress={createNewChat}>
           <Icon.AddUser/>
         </Pressable>
       </View>
@@ -88,9 +92,7 @@ export default function ChatList({navigation}:any){
           <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
         </View>
         {userChats?.map((chat:any) => (
-          <>
-          <Message key={chat._id} chat={chat} navigation={navigation}/>
-          </>
+          <Dialog key={chat._id} chat={chat} chatStore={messagesHistory[chat._id]} navigation={navigation}/>
         ))}
       </View>
     </View>

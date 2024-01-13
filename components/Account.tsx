@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useState, useContext } from 'react'
 import { StyleSheet, View, Dimensions, Image, TextInput, Text, Pressable } from 'react-native'
-import { updateProfile } from '../api/user-api'
+import { updateUserProfileAPI } from '../api/user-api'
 import { setItem } from "../lib/async-storage"
 import { useAccountStore } from '../stores/account-store'
 import { WarningContext } from '../lib/warning/warning-context'
@@ -17,9 +17,9 @@ export default function Account(){
   })
 
   const update = async() => {
-    const result = await updateProfile({_id: user._id, ...newData})
+    const result = await updateUserProfileAPI({_id: user._id, ...newData})
     if(result.status >= 400){
-      warning.showWindow({title: "Couldn't update", message: `Something went wrong!: ${result.message}`});
+      warning.showWindow({title: "Couldn't update", message: `Something went wrong!: ${result.message}`})
       return
     }
     setItem('userdata', result.data)

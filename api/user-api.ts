@@ -3,9 +3,30 @@ import axios from "axios"
 
 const api_url = 'http://192.168.1.194:4000/api'
 
-const account = async(userdata: any, register: boolean) => {
-  const url = register ? `${api_url}/user/register` : `${api_url}/user/login`
-  if(register && userdata.password !== userdata.confirmPassword){
+const loginAPI = async(userdata: any) => {
+  const url = `${api_url}/user/login`
+  try{
+    const result = await axios.post(url, {
+      usertag: userdata.usertag,
+      password: userdata.password
+    })
+    return({
+      data: result.data,
+      status: 200,
+    })
+  } catch(err: any) {
+    return({
+      data: null,
+      title: `Couldn't log into account`,
+      message: err.response?.data.message || "The server is possibly offline :<",
+      status: err.response?.status || 400,
+    })
+  }
+}
+
+const registerAPI = async(userdata: any) => {
+  const url = `${api_url}/user/register`
+  if(userdata.password !== userdata.confirmPassword){
     return {message: "Passwords do not match!", status: 400};
   }
   try{
@@ -20,14 +41,14 @@ const account = async(userdata: any, register: boolean) => {
   } catch(err: any) {
     return({
       data: null,
-      title: `Couldn't ${register ? "register a new" : "log into"} account`,
+      title: `Couldn't register a new account`,
       message: err.response?.data.message || "The server is possibly offline :<",
       status: err.response?.status || 400,
     })
   }
 }
 
-const getUsers = async() => {
+const fetchAllUsersAPI = async() => {
   try{
     const result = await axios.get(`${api_url}/user/getall`)
     return({
@@ -44,7 +65,7 @@ const getUsers = async() => {
   }
 }
 
-const fetchUserId = async(_id: string) => {
+const fetchUserByIdAPI = async(_id: string) => {
   try{
     const result = await axios.get(`${api_url}/user/find/${_id}`)
     return({
@@ -61,7 +82,7 @@ const fetchUserId = async(_id: string) => {
   }
 }
 
-const fetchUserTag = async(usertag: string) => {
+const fetchUserByTagAPI = async(usertag: string) => {
   try{
     const result = await axios.get(`${api_url}/user/findtag/${usertag}`)
     return({
@@ -78,7 +99,7 @@ const fetchUserTag = async(usertag: string) => {
   }
 }
 
-const updateProfile = async(data: any) => {
+const updateUserProfileAPI = async(data: any) => {
   try{
     const result = await axios.post(`${api_url}/user/update`, data)
     return({
@@ -95,7 +116,7 @@ const updateProfile = async(data: any) => {
   }
 }
 
-const logout = async() => {
+const logoutAPI = async() => {
   try{
     removeItem('userdata')
   } catch (err) { 
@@ -103,4 +124,4 @@ const logout = async() => {
   }
 }
 
-export {account, logout, getUsers, fetchUserId, fetchUserTag, updateProfile}
+export {loginAPI ,registerAPI, logoutAPI, fetchAllUsersAPI, fetchUserByIdAPI, fetchUserByTagAPI, updateUserProfileAPI}

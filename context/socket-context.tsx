@@ -1,22 +1,22 @@
 import * as React from 'react'
 import { createContext, useEffect, useContext, useState } from "react"
-import io, { Socket } from "socket.io-client"
 import Loading from '../components/Loading'
+import { fetchLatestMessageAPI } from "../api/message-api"
 import { useAccountStore } from '../stores/account-store'
 import { useNavigation } from '@react-navigation/native'
 import { useChatStore } from '../stores/chat-store'
 import { useMessageStore } from '../stores/messages-store'
+import io, { Socket } from "socket.io-client"
+import { WarningContext } from '../lib/warning/warning-context'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
-import { WarningContext } from '../lib/warning/warning-context'
-import { fetchLatestMessage } from "../api/chat-api"
 
 export const SocketContext: any = createContext(null)
 
 export default function SocketWrapper({children}: any){
-  const {activeChat, userChats}:any = useChatStore()
-  const {addMessage, setChatHistory, messageHistory}:any = useMessageStore()
+  const {userChats}:any = useChatStore()
   const warning = useContext(WarningContext)
+  const {addMessage, setChatHistory, setIsTyping}:any = useMessageStore()
   const [socket, setSocket] = useState<Socket | null | any>()
   const {_id}:any = useAccountStore()
   const navigation = useNavigation()
@@ -77,13 +77,12 @@ export default function SocketWrapper({children}: any){
     socket.on('newMessage', (data: any) => {
       addMessage(data)
     })
-    // socket.on('typing', (data: any) => {
-    //   if(data.ChatID != ChatID){ return }
-    //   setIsOpponentTyping(data.state)
-    // })
+    socket.on('typing', (data: any) => {
+      setIsTyping({chatID: data.chatID, state: data.state})
+    })
     return () => {
       socket.off('newMessage')
-      // socket.off('typing')
+      socket.off('typing')
     }
   }, [socket])
 
@@ -94,9 +93,8 @@ export default function SocketWrapper({children}: any){
   const fillMessagesPreview = async() => {
     for(let i = 0; i < userChats.length; i++){
       tryCatch(async()=>{
-        const latestMessage = await netRequestHandler(fetchLatestMessage(userChats[i]._id), warning)
-        console.log("LAST MESSAGES", latestMessage)
-        setChatHistory({ChatID: userChats[i]._id, messages: latestMessage.data})
+        const latestMessage = await netRequestHandler(fetchLatestMessageAPI(userChats[i]._id), warning)
+        setChatHistory({chatID: userChats[i]._id, messages: latestMessage.data.reverse()})
       })
     }
   }
