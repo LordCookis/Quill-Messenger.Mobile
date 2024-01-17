@@ -4,10 +4,13 @@ import { useContext, useEffect, useState } from 'react'
 import Icon from "../assets/Icons"
 import Menu from './Menu'
 import Dialog from './Dialog'
+import Group from './Group'
 import { useChatStore } from '../stores/chat-store'
+import { useGroupStore } from '../stores/group-store'
 import { useAccountStore } from '../stores/account-store'
 import { useMessageStore } from '../stores/messages-store'
 import { createNewChatAPI, fetchUserChatsAPI } from '../api/chat-api'
+import { fetchUserGroupsAPI } from '../api/group-api'
 import { inputFilter } from '../utils/input-filter'
 import { fetchUserByTagAPI } from '../api/user-api'
 import { WarningContext } from '../lib/warning/warning-context'
@@ -18,6 +21,7 @@ import { netRequestHandler } from '../utils/net-request-handler'
 
 export default function DialogList({navigation}:any){
   const {userChats, setUserChats, addNewChat}:any = useChatStore()
+  const {userGroups, setUserGroups}:any = useGroupStore()
   const {messagesHistory}: any = useMessageStore()
   const [search, setSearch] = useState<string>("")
   const [rawInput, setRawInput] = useState('')
@@ -29,7 +33,8 @@ export default function DialogList({navigation}:any){
   const [focus, setFocus] = useState<boolean>(false)
 
   useEffect(()=>{
-    !userChats.length && user._id && socket?.connected && !focus ? fetchChats() : fetchGroups()
+    !userChats.length && user._id && socket?.connected
+    focus ? fetchGroups() : fetchChats()
   }, [user._id, socket?.connected, focus])
 
   useEffect(() => {
@@ -45,7 +50,11 @@ export default function DialogList({navigation}:any){
   }
 
   const fetchGroups = async() => {
-    setUserChats([])
+    tryCatch(async()=>{
+      const result = await netRequestHandler(fetchUserGroupsAPI(user._id), warning)
+      console.log("Fetched groups", result)
+      setUserGroups(result.data.groups)
+    })
   }
 
   const createNewChat = async() => {
@@ -75,7 +84,7 @@ export default function DialogList({navigation}:any){
         <TextInput
           style={styles.searchInput}
           value={search}
-          onChangeText={(e) => setRawInput(e)}
+          onChangeText={(e)=>setRawInput(e)}
           placeholder="Search by tag"
           placeholderTextColor={'#2c2f38'}
           inputMode="text"
@@ -91,9 +100,14 @@ export default function DialogList({navigation}:any){
           <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
           <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(!focus)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
         </View>
-        {userChats?.map((chat:any) => (
-          <Dialog key={chat._id} chat={chat} chatStore={messagesHistory[chat._id]} navigation={navigation}/>
-        ))}
+        {!focus ?
+          userChats?.map((chat:any) => (
+            <Dialog key={chat._id} chat={chat} chatStore={messagesHistory[chat._id]} navigation={navigation}/>
+          )) :
+          userGroups?.map((group:any) => (
+            <Group key={group._id} group={group} groupStore={messagesHistory[group._id]} navigation={navigation}/>
+          ))
+        }
       </View>
     </View>
     </>

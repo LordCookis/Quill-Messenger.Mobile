@@ -43,7 +43,7 @@ export default function Chat({route}:any) {
     clearTimeout(typingTimer)
     stopTyping()
     if(isTyping){return}
-    setIsTyping(true);
+    setIsTyping(true)
     socket.emit('typing', {state: true, recipientID: activeChat.friend._id, chatID})
   }
 
