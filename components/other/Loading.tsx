@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { StyleSheet, View, Text, Dimensions} from "react-native"
-import Icon from "../assets/Icons"
+import Icon from "../../assets/Icons"
 
 export default function Loading(){
   return(
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#17191f',
+    backgroundColor: '#18191e',
   },
   loadingIco: {
     display: 'flex',

@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 
-export const useLoadingStore = create((set) => ({
+interface loadingStore {
+  loading: boolean,
+  setLoading: (data: boolean) => void 
+}
+
+export const useLoadingStore = create<loadingStore>()((set) => ({
   loading: false,
   setLoading: (data: boolean) => set(() => ({ loading: data })),
 }))

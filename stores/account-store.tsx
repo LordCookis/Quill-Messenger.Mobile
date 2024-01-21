@@ -2,21 +2,20 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-interface userData {
+type userData = {
   _id: string,
   usertag: string,
   avatar: string,
   displayedName: string,
-  lastOnline: string,
 }
 
-type AccoutStore = {
+interface AccoutStore {
   _id: string,
   usertag: string,
   avatar: string,
   displayedName: string,
-  lastOnline: string,
-  setUser: (arg0: userData) => void
+  setUser: (data: userData) => void,
+  clearAccountStore: () => void
 }
 
 export const useAccountStore = create<AccoutStore>()(persist((set) => ({
@@ -30,14 +29,12 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
     usertag: userdata.usertag,
     avatar: userdata.avatar,
     displayedName: userdata.displayedName,
-    lastOnline: userdata.lastOnline,
   })),
   clearAccountStore: () => set(()=>({
     _id: "",
     usertag: "",
     avatar: "",
     displayedName: "",
-    lastOnline: ""
   }))
 }),{
   name: "userAccount",

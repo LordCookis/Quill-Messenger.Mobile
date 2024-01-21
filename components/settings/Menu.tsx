@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useContext } from 'react'
 import { StyleSheet, View, Image, Dimensions, Pressable, Text } from 'react-native'
-import { logoutAPI } from "../api/user-api"
-import { WarningContext } from "../lib/warning/warning-context"
-import { useAccountStore } from "../stores/account-store"
-import { useChatStore } from "../stores/chat-store"
-import Icon from '../assets/Icons'
+import { logoutAPI } from "../../api/user-api"
+import { WarningContext } from "../../lib/warning/warning-context"
+import { useAccountStore } from "../../stores/account-store"
+import { useChatStore } from "../../stores/chat-store"
+import Icon from '../../assets/Icons'
 
 export default function Menu({navigation, setTab}:any){
   const user:any = useAccountStore()
@@ -26,8 +26,7 @@ export default function Menu({navigation, setTab}:any){
             <View style={styles.linkUserImage}>
               {user.avatar ? <Image
               style={styles.userImage}
-              source={{uri:user.avatar}}
-              alt="pfp"/> : <></>}
+              source={{uri:user.avatar}}/> : <></>}
             </View>
             <View>
               <Text style={styles.displayedName}>{user.displayedName}</Text>
@@ -56,9 +55,9 @@ const styles = StyleSheet.create({
   },
   panel: {
     width: '80%',
-    backgroundColor: '#17191f',
+    backgroundColor: '#18191e',
     borderRightWidth: 2,
-    borderColor: '#8d70ff',
+    borderColor: '#c577e4',
   },
   back: {
     width: '20%',
@@ -103,7 +102,6 @@ const styles = StyleSheet.create({
     margin: 10,
     padding: 10,
     backgroundColor: '#1e2027',
-    border: 'none',
     borderRadius: 10,
     display: 'flex',
     flexDirection: 'row',

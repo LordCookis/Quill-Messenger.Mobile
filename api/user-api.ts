@@ -1,9 +1,10 @@
+import { userData } from "../types/types"
 import { removeItem } from "../lib/async-storage"
 import axios from "axios"
 
 const api_url = 'http://192.168.1.194:4000/api'
 
-const loginAPI = async(userdata: any) => {
+const loginAPI = async(userdata: {usertag: string, password: string}) => {
   const url = `${api_url}/user/login`
   try{
     const result = await axios.post(url, {
@@ -24,7 +25,7 @@ const loginAPI = async(userdata: any) => {
   }
 }
 
-const registerAPI = async(userdata: any) => {
+const registerAPI = async(userdata: {usertag: string, password: string, confirmPassword: string}) => {
   const url = `${api_url}/user/register`
   if(userdata.password !== userdata.confirmPassword){
     return {message: "Passwords do not match!", status: 400};
@@ -99,7 +100,7 @@ const fetchUserByTagAPI = async(usertag: string) => {
   }
 }
 
-const updateUserProfileAPI = async(data: any) => {
+const updateUserProfileAPI = async(data: {_id: string, avatar?: string, displayedName?: string}) => {
   try{
     const result = await axios.post(`${api_url}/user/update`, data)
     return({

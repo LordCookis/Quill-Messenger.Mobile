@@ -1,8 +1,34 @@
 import { create } from 'zustand'
 
-export const useMessageStore = create((set) => ({
+export type message = {
+  _id: string,
+  chatID: string,
+  senderID: string,
+  text: string,
+  createdAt: string,
+  updatedAt: string,
+  __v: 0
+}
+
+export type messageHistory = {
+  [key: string]: {
+    messages: [message],
+    isTyping: boolean,
+    inputMessage: string
+  }
+}
+
+interface messageStore {
+  messagesHistory: messageHistory,
+  addMessage: (data: message) => void,
+  setChatHistory: (data: {chatID: string, messages: message[]}) => void,
+  setIsTyping: (data: {chatID: string, state: boolean}) => void,
+  setInputMessage: (data: {chatID: string, message: string}) => void,
+}
+
+export const useMessageStore = create<messageStore>()((set) => ({
   messagesHistory: {},
-  setChatHistory: (data: any) => set((state: any) => ({
+  setChatHistory: (data) => set((state: any) => ({
     messagesHistory: {...state.messagesHistory, [data.chatID]: {
       ...state.messagesHistory[data.chatID],
       'messages': [...data.messages],
@@ -10,17 +36,17 @@ export const useMessageStore = create((set) => ({
       inputMessage: ""
     }}
   })),
-  addMessage: (data: any) => set((state: any) => ({
+  addMessage: (data) => set((state: any) => ({
     messagesHistory: {...state.messagesHistory, [data.chatID]: {
       ...state.messagesHistory[data.chatID], messages: [...(state.messagesHistory[data.chatID].messages || []), data]
     }}
   })),
-  setIsTyping: (data: any) => set((state: any) => ({
+  setIsTyping: (data) => set((state: any) => ({
     messagesHistory: {...state.messagesHistory, [data.chatID]: {
       ...state.messagesHistory[data.chatID], isTyping: data.state
     }}
   })),
-  setInputMessage: (data: any) => set((state: any) => ({
+  setInputMessage: (data) => set((state: any) => ({
     messagesHistory: {...state.messagesHistory, [data.chatID]: {
       ...state.messagesHistory[data.chatID], inputMessage: data.message
     }}

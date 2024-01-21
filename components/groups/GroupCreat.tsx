@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { View, Text, TextInput, StyleSheet, Image, Pressable, Dimensions} from "react-native"
-import Icon from '../assets/Icons'
+import Icon from '../../assets/Icons'
 import { useState, useEffect, useContext } from 'react'
-import { useChatStore } from '../stores/chat-store'
-import { useAccountStore } from '../stores/account-store'
+import { useChatStore } from '../../stores/chat-store'
+import { useAccountStore } from '../../stores/account-store'
 import { Socket } from 'socket.io-client'
-import { SocketContext } from '../context/socket-context'
-import { WarningContext } from '../lib/warning/warning-context'
-import { fetchUserByIdAPI } from '../api/user-api'
-import { netRequestHandler } from '../utils/net-request-handler'
-import { tryCatch } from '../utils/try-catch'
-import { createNewGroupAPI } from '../api/group-api'
+import { SocketContext } from '../../context/socket-context'
+import { WarningContext } from '../../lib/warning/warning-context'
+import { fetchUserByIdAPI } from '../../api/user-api'
+import { netRequestHandler } from '../../utils/net-request-handler'
+import { tryCatch } from '../../utils/try-catch'
+import { createNewGroupAPI } from '../../api/group-api'
 
 export default function GroupCreat({navigation}:any) {
   const {userChats}:any = useChatStore()
@@ -26,7 +26,7 @@ export default function GroupCreat({navigation}:any) {
     userChats.map((chat:any) => { 
       const userID = chat.members.filter((userID:string) => userID !== user._id)[0]
       tryCatch(async()=>{
-        const result = await netRequestHandler(fetchUserByIdAPI(userID), warning)
+        const result = await netRequestHandler(()=>fetchUserByIdAPI(userID), warning)
         setMembers((prevMembers:any) => [...prevMembers, result.data])
       })
     })
@@ -42,7 +42,7 @@ export default function GroupCreat({navigation}:any) {
   const creatNewGroup = () => {
     if(groupMembers.length < 1){return}
     tryCatch(async()=>{ 
-      await netRequestHandler(createNewGroupAPI(groupName, 'https://i.imgur.com/S5OviJ6h.jpg', groupMembers), warning)
+      await netRequestHandler(()=>createNewGroupAPI(groupName, 'https://i.imgur.com/S5OviJ6h.jpg', groupMembers), warning)
       navigation.navigate('DialogList')
     })
   }
@@ -54,7 +54,6 @@ export default function GroupCreat({navigation}:any) {
         onChangeText={(e)=>setGroupName(e)}
         placeholder='Group name'
         placeholderTextColor={'#2c2f38'}
-        inputMode="text"
       />
       <Text style={styles.title}>Кого добавить?</Text>
       {members.map((member:any)=>{
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     display: 'flex',
     alignItems: 'center',
-    backgroundColor: '#17191f',
+    backgroundColor: '#18191e',
   },
   input: {
     margin: 5,

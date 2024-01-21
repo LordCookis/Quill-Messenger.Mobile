@@ -1,24 +1,24 @@
 import * as React from 'react'
 import { createContext, useEffect, useContext, useState } from "react"
-import Loading from '../components/Loading'
+import Loading from '../components/other/Loading'
 import { fetchLatestMessageAPI } from "../api/message-api"
-import { useAccountStore } from '../stores/account-store'
 import { useNavigation } from '@react-navigation/native'
 import { useChatStore } from '../stores/chat-store'
 import { useMessageStore } from '../stores/messages-store'
 import io, { Socket } from "socket.io-client"
 import { WarningContext } from '../lib/warning/warning-context'
+import { message } from '../stores/messages-store'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
+import { warningHook } from '../lib/warning/warning-context'
 
 export const SocketContext: any = createContext(null)
 
-export default function SocketWrapper({children}: any){
-  const {userChats}:any = useChatStore()
-  const warning = useContext(WarningContext)
-  const {addMessage, setChatHistory, setIsTyping}:any = useMessageStore()
+export default function SocketWrapper({children, _id}: {children: React.ReactNode, _id: string}){
+  const {userChats} = useChatStore()
+  const warning = useContext<warningHook>(WarningContext)
+  const {addMessage, setChatHistory, setIsTyping} = useMessageStore()
   const [socket, setSocket] = useState<Socket | null | any>()
-  const {_id}:any = useAccountStore()
   const navigation = useNavigation()
   const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
 
@@ -30,14 +30,11 @@ export default function SocketWrapper({children}: any){
   }, [navigation])
 
   useEffect(()=>{
-    //New socket.io connection won't be created if on the logging page
-    if(route == "Login"){return}
     const newSocket = io(`ws://192.168.1.194:4000/?_id=${_id}`, {
-      reconnection: true, // включить повторное подключение
-      reconnectionDelay: 2000, // интервал между попытками (в миллисекундах)
-      reconnectionAttempts: 100 // максимальное количество попыток
-    });
-
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 100
+    })
     newSocket.on('connect', ()=> {
       console.log("Connected to the server!")
       newSocket["connected"] = true
@@ -63,21 +60,21 @@ export default function SocketWrapper({children}: any){
       newSocket.disconnect()
       newSocket.removeAllListeners()
     }
-  }, [route])
+  }, [])
 
-  //Delete socket.io instance after logging out
-  useEffect(()=>{
-    if(route != "Login" || !socket){return}
-    socket.disconnect()
-    setSocket(null)
-  }, [route])
+  ////Delete socket.io instance after logging out
+  //useEffect(()=>{
+  //  if(route != "Login" || !socket){return}
+  //  socket.disconnect()
+  //  setSocket(null)
+  //}, [route])
 
   useEffect(()=>{
     if(!socket?.connected){return}
-    socket.on('newMessage', (data: any) => {
+    socket.on('newMessage', (data: message) => {
       addMessage(data)
     })
-    socket.on('typing', (data: any) => {
+    socket.on('typing', (data: {chatID: string, state: boolean}) => {
       setIsTyping({chatID: data.chatID, state: data.state})
     })
     return () => {
@@ -93,7 +90,7 @@ export default function SocketWrapper({children}: any){
   const fillMessagesPreview = async() => {
     for(let i = 0; i < userChats.length; i++){
       tryCatch(async()=>{
-        const latestMessage = await netRequestHandler(fetchLatestMessageAPI(userChats[i]._id), warning)
+        const latestMessage = await netRequestHandler(()=>fetchLatestMessageAPI(userChats[i]._id), warning)
         setChatHistory({chatID: userChats[i]._id, messages: latestMessage.data.reverse()})
       })
     }
@@ -101,7 +98,7 @@ export default function SocketWrapper({children}: any){
 
   return(
     <SocketContext.Provider value={socket}>
-      {!socket?.connected && route != "Login" && route != undefined ? <Loading/> : <></>}
+      {!socket?.connected && route != "Login" ? <Loading/> : <></>}
       {children}
     </SocketContext.Provider>
   )

@@ -1,37 +1,38 @@
 import * as React from 'react'
 import { View, Text, StyleSheet, Dimensions, TextInput, Pressable, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native"
 import { Fragment, useContext, useEffect, useRef, useState } from "react"
-import Icon from "../assets/Icons"
-import { useChatStore } from "../stores/chat-store"
-import { useMessageStore } from '../stores/messages-store'
-import { sendMessageAPI } from "../api/message-api"
-import { WarningContext } from "../lib/warning/warning-context"
-import { useAccountStore } from "../stores/account-store"
+import Icon from "../../assets/Icons"
+import { useChatStore } from "../../stores/chat-store"
+import { useMessageStore } from '../../stores/messages-store'
+import { sendMessageAPI } from "../../api/message-api"
+import { WarningContext } from "../../lib/warning/warning-context"
+import { useAccountStore } from "../../stores/account-store"
 import { Socket } from 'socket.io-client'
-import { SocketContext } from '../context/socket-context'
-import { tryCatch } from '../utils/try-catch'
-import { netRequestHandler } from '../utils/net-request-handler'
+import { SocketContext } from '../../context/socket-context'
+import { tryCatch } from '../../utils/try-catch'
+import { netRequestHandler } from '../../utils/net-request-handler'
+import { warningHook } from '../../lib/warning/warning-context'
 
 export default function Chat({route}:any) {
   const {chatID} = route.params
-  const {activeChat}:any = useChatStore()
+  const {activeChat} = useChatStore()
   const user = useAccountStore()
-  const warning:any = useContext(WarningContext)
+  const warning = useContext<warningHook>(WarningContext)
   const socket: Socket | any = useContext(SocketContext)
-  const ref = useRef<HTMLDivElement>(null)
-  const [isTyping, setIsTyping]:any = useState(false)
-  const [typingTimer, setTypingTimer]:any = useState(null)
+  const ref = useRef<any>(null)
+  const [isTyping, setIsTyping] = useState<boolean>(false)
+  const [typingTimer, setTypingTimer] = useState<any>(null)
   const {messagesHistory, addMessage, setInputMessage}:any = useMessageStore()
 
   useEffect(()=>{
     if(!messagesHistory[chatID]?.messages?.length){return}
-    ref.current?.scrollIntoView({behavior: "smooth", block: "end"})
+    ref.current?.scrollToEnd({animated: true})
   }, [messagesHistory[chatID]?.messages?.length])
 
   const sendNewMessage = async() => {
     if(!messagesHistory[chatID]?.inputMessage || !socket){return}
     tryCatch(async()=>{
-      const sentMessage = await netRequestHandler(sendMessageAPI(chatID, user._id, messagesHistory[chatID]?.inputMessage), warning)
+      const sentMessage = await netRequestHandler(()=>sendMessageAPI(chatID, user._id, messagesHistory[chatID]?.inputMessage), warning)
       socket.emit('newMessage', {message: sentMessage.data, recipientID: activeChat.friend._id})
       addMessage(sentMessage.data)
       setInputMessage({chatID, message: ""})
@@ -63,7 +64,7 @@ export default function Chat({route}:any) {
   return(
     <View style={styles.chatBox}>
       <View style={styles.topPanel}>
-        {activeChat?.friend?.avatar ? <Image source={{uri:activeChat?.friend?.avatar}} alt="avatar" height={40} width={40} style={[styles.avatar, {margin: 5}]}/> : <></>}
+        {activeChat?.friend?.avatar ? <Image source={{uri:activeChat?.friend?.avatar}} style={[styles.avatar, {margin: 5}]}/> : <></>}
         <Text style={styles.displayedName}>{activeChat?.friend?.displayedName}</Text>
         <Text style={styles.usertag}>{activeChat?.friend?.usertag}
           {messagesHistory[chatID]?.isTyping 
@@ -72,19 +73,18 @@ export default function Chat({route}:any) {
         </Text>
       </View>
       <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
-        <ScrollView>
+        <ScrollView
+          ref={ref}
+          contentContainerStyle={{ alignItems: 'flex-end' }}>
           <View style={styles.chatMesseges}>
             {messagesHistory[chatID]?.messages?.map((message: any) => {
               const date = new Date(message.createdAt)
-              return (
+              return(
                 <Fragment key={message._id}>
-                  <View id={message._id} style={message.senderID == user._id ? styles.myMessage : styles.notMyMessage}>
+                  <View style={message.senderID == user._id ? styles.myMessage : styles.notMyMessage}>
                     <Image
                       source={message.senderID == user._id ? {uri: user.avatar} : {uri: activeChat?.friend?.avatar}}
-                      alt="avatar"
-                      style={styles.avatar}
-                      width={30}
-                      height={30}/>
+                      style={[styles.avatar, {height: 30, width: 30, marginTop: 12,}]}/>
                     <View style={message.senderID == user._id ? styles.myText : styles.notMyText}>
                       <Text style={[{color: '#ffffff', fontSize: 15}]}>{message.text}</Text>
                       <Text style={[styles.timeSent, message.senderID == user._id && {textAlign: 'right'}]}>{`${date.getHours()}:${date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()}`}</Text>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: Dimensions.get('window').height,
     width: Dimensions.get('window').width,
-    backgroundColor: '#17191f',
+    backgroundColor: '#18191e',
   },
   topPanel: {
     height: '10%',
@@ -123,6 +123,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   avatar: {
+    height: 40,
+    width: 40,
     borderRadius: 50,
   },
   displayedName: {
@@ -157,15 +159,17 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   myMessage: {
+    marginRight: 30,
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'flex-start',
     flexDirection: 'row-reverse',
     borderRadius: 10,
   },
   notMyMessage: {
+    marginRight: 30,
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'flex-start',
     flexDirection: 'row',
     borderRadius: 10,
@@ -177,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     flexDirection: 'column',
     borderRadius: 10,
-    backgroundColor: '#3e3b54',
+    backgroundColor: '#d06af838',
   },
   notMyText: {
     padding: 5,
@@ -186,7 +190,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     flexDirection: 'column',
     borderRadius: 10,
-    backgroundColor: '#2b2b33',
+    backgroundColor: '#ffffff11',
   },
   timeSent: {
     fontSize: 13,
@@ -194,6 +198,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   viewMessages: {
+    borderTopWidth: 2,
+    borderTopColor: '#c577e4',
     marginBottom: 10,
     display: 'flex',
     justifyContent: 'center',

@@ -1,22 +1,23 @@
 import * as React from 'react'
 import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
 import { useEffect, useState, useContext } from 'react'
-import Icon from '../assets/Icons'
-import { fetchUserByIdAPI } from '../api/user-api'
-import { useChatStore } from '../stores/chat-store'
-import { useAccountStore } from '../stores/account-store'
+import Icon from '../../assets/Icons'
+import { fetchUserByIdAPI } from '../../api/user-api'
+import { useChatStore } from '../../stores/chat-store'
+import { useAccountStore } from '../../stores/account-store'
 import { Socket } from 'socket.io-client'
-import { SocketContext } from '../context/socket-context'
-import { WarningContext } from '../lib/warning/warning-context'
-import { tryCatch } from '../utils/try-catch'
-import { netRequestHandler } from '../utils/net-request-handler'
+import { SocketContext } from '../../context/socket-context'
+import { WarningContext } from '../../lib/warning/warning-context'
+import { tryCatch } from '../../utils/try-catch'
+import { netRequestHandler } from '../../utils/net-request-handler'
+import { warningHook } from '../../lib/warning/warning-context'
 
 export default function Dialog({chat, chatStore, navigation}:any){
-  const [opponentData, setOpponentData]:any = useState()
-  const {setActiveChat, activeChat}:any = useChatStore()
+  const [opponentData, setOpponentData] = useState<any>()
+  const {activeChat, setActiveChat} = useChatStore()
   const socket: Socket | any = useContext(SocketContext)
   const user = useAccountStore()
-  const warning: any = useContext(WarningContext)
+  const warning = useContext<warningHook>(WarningContext)
   const [messageData, setMessageData] = useState({
     senderID: "",
     text: "",
@@ -32,7 +33,7 @@ export default function Dialog({chat, chatStore, navigation}:any){
     if(opponentData || !socket?.connected){return}
     const userID = chat.members[0] != user._id ? chat.members[0] : chat.members[1]
     tryCatch(async()=>{
-      const result = await netRequestHandler(fetchUserByIdAPI(userID), warning)
+      const result = await netRequestHandler(()=>fetchUserByIdAPI(userID), warning)
       setOpponentData(result.data)
     })
   }, [opponentData, socket?.connected])
@@ -55,7 +56,7 @@ export default function Dialog({chat, chatStore, navigation}:any){
   return(
     <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
-      {opponentData?.avatar ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: opponentData?.avatar}} alt="pfp"/> : <></>}
+      {opponentData?.avatar ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: opponentData?.avatar}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{opponentData?.displayedName}</Text>
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1e2027',
+    backgroundColor: '#e297ff10',
     borderRadius: 10,
   },
   messageContent: {

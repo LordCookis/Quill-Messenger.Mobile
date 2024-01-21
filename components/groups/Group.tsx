@@ -1,15 +1,15 @@
 import * as React from 'react'
 import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
 import { useEffect, useState, useContext } from 'react'
-import Icon from '../assets/Icons'
-import { fetchUserGroupsAPI } from '../api/group-api'
-import { useGroupStore } from '../stores/group-store'
-import { useAccountStore } from '../stores/account-store'
+import Icon from '../../assets/Icons'
+import { fetchUserGroupsAPI } from '../../api/group-api'
+import { useGroupStore } from '../../stores/group-store'
+import { useAccountStore } from '../../stores/account-store'
 import { Socket } from 'socket.io-client'
-import { SocketContext } from '../context/socket-context'
-import { WarningContext } from '../lib/warning/warning-context'
-import { tryCatch } from '../utils/try-catch'
-import { netRequestHandler } from '../utils/net-request-handler'
+import { SocketContext } from '../../context/socket-context'
+import { WarningContext } from '../../lib/warning/warning-context'
+import { tryCatch } from '../../utils/try-catch'
+import { netRequestHandler } from '../../utils/net-request-handler'
 
 export default function Group({group, groupStore, navigation}:any){
   const {setActiveGroup, activeGroup}:any = useGroupStore()
@@ -46,7 +46,7 @@ export default function Group({group, groupStore, navigation}:any){
   return(
     <Pressable onPress={selectGroup}>
     <View style={styles.messageBlock}>
-      {group?.image ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: group?.image}} alt="pfp"/> : <></>}
+      {group?.image ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: group?.image}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{group?.name}</Text>

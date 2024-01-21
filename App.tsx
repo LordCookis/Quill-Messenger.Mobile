@@ -2,22 +2,24 @@ import { StatusBar } from 'react-native'
 import * as React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import Login from './components/Login'
-import DialogList from './components/DialogList'
-import Chat from './components/Chat'
-import Group from './components/Group'
-import Account from './components/Account'
-import Interface from './components/Interface'
-import GroupCreat from './components/GroupCreat'
+import { useAccountStore } from './stores/account-store'
+import Login from './components/other/Login'
+import DialogList from './components/dialogs/DialogList'
+import Chat from './components/dialogs/Chat'
+import Group from './components/groups/Group'
+import Account from './components/settings/Account'
+import Interface from './components/settings/Interface'
+import GroupCreat from './components/groups/GroupCreat'
 import SocketWrapper from './context/socket-context'
 
 export default function App() {
+  const user = useAccountStore()
   const Stack = createNativeStackNavigator()
 
-  return (
+  return(
     <NavigationContainer>
       <StatusBar backgroundColor={'#17191f'} barStyle={'light-content'}/>
-      <SocketWrapper>
+      <SocketWrapper _id={user._id}>
         <Stack.Navigator initialRouteName='Login'>
           <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
           <Stack.Screen name='DialogList' component={DialogList} options={{ headerShown: false }}/>

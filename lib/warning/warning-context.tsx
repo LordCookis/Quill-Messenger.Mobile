@@ -4,6 +4,19 @@ import { StyleSheet } from "react-native"
 
 export const WarningContext: any = React.createContext(null)
 
+type errorDetails = {
+  title: string,
+  message: string,
+  fn?: (() => void) | null
+}
+
+export interface warningHook {
+  showWindow: (a: {title: string, message: string, fn?: Function | null}) => void
+  closeWindow: () => void
+  isError: boolean
+  error: errorDetails
+}
+
 export default function WarningProvider({children}: any){
   const warningHook = useWarning()
 

@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { useState, useContext } from 'react'
 import { StyleSheet, View, Dimensions, Image, TextInput, Text, Pressable } from 'react-native'
-import { updateUserProfileAPI } from '../api/user-api'
-import { setItem } from "../lib/async-storage"
-import { useAccountStore } from '../stores/account-store'
-import { WarningContext } from '../lib/warning/warning-context'
+import { updateUserProfileAPI } from '../../api/user-api'
+import { setItem } from "../../lib/async-storage"
+import { useAccountStore } from '../../stores/account-store'
+import { WarningContext } from '../../lib/warning/warning-context'
 
 export default function Account(){
   const user = useAccountStore()
@@ -32,8 +32,7 @@ export default function Account(){
         <View style={styles.linkUserImage}>
           {user.avatar ? <Image
           style={styles.userImage}
-          source={{uri:user.avatar}}
-          alt="pfp"/> : <></>}
+          source={{uri:user.avatar}}/> : <></>}
         </View>
         <View>
           <Text style={styles.displayedName}>{user.displayedName}</Text>
@@ -46,36 +45,26 @@ export default function Account(){
           value={newData.displayedName}
           placeholder={user.usertag}
           onChangeText={(e)=>setNewData({...newData, displayedName: e})}
-          placeholderTextColor={'#ccc'}
-          inputMode='text'
-        />
+          placeholderTextColor={'#ccc'}/>
         <TextInput
           style={styles.dataInput}
           value={newData.avatar}
-          onChangeText={(e)=>setNewData({...newData, avatar: e})}
-          inputMode='text'
-        />
+          onChangeText={(e)=>setNewData({...newData, avatar: e})}/>
         <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
       </View>
       <View>
         <TextInput
           style={styles.dataInput}
           placeholder='Введите старый пароль'
-          placeholderTextColor={'#cccccc'}
-          inputMode='text'
-        />
+          placeholderTextColor={'#cccccc'}/>
         <TextInput
           style={styles.dataInput}
           placeholder='Введите новый пароль'
-          placeholderTextColor={'#cccccc'}
-          inputMode='text'
-        />
+          placeholderTextColor={'#cccccc'}/>
         <TextInput
           style={styles.dataInput}
           placeholder='Подтвердите новый пароль'
-          placeholderTextColor={'#cccccc'}
-          inputMode='text'
-        />
+          placeholderTextColor={'#cccccc'}/>
         <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
       </View>
     </View>
@@ -87,7 +76,7 @@ const styles = StyleSheet.create({
     height: Dimensions.get('window').height,
     width: Dimensions.get('window').width,
     display: 'flex',
-    backgroundColor: '#17191f',
+    backgroundColor: '#18191e',
     flexDirection: 'column',
     alignItems: 'center',
   },

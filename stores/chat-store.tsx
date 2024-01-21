@@ -2,13 +2,37 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export const useChatStore = create(persist((set) => ({
+export type chat = {
+  _id: string,
+  members: string[],
+  createdAt: string,
+  updatedAt: string,
+  __v: number
+}
+
+export type friend = {
+  avatar: string,
+  displayedName: string,
+  usertag: string,
+  _id: string
+}
+
+interface chatStore {
+  userChats: chat[],
+  activeChat: {chat: chat, friend: friend},
+  setUserChats: (data: chat[]) => void,
+  addNewChat: (data: chat) => void,
+  setActiveChat: (data: {chat: chat, friend: friend}) => void
+  clearChatStore: () => void,
+}
+
+export const useChatStore = create<chatStore>()(persist((set) => ({
   userChats: [],
   activeChat: {},
-  setUserChats: (data: any) => set((state: any) => ({ userChats: data })),
-  addNewChat: (data: any) => set((state: any) => ({userChats: [data, ...state.userChats]})),
-  clearChatStore: () => set(()=>({userChats: []})),
-  setActiveChat: (data: any) => set((state: any) => ({activeChat: data}))
+  setUserChats: (data) => set(() => ({ userChats: data })),
+  addNewChat: (data) => set((state: any) => ({userChats: [data, ...state.userChats]})),
+  setActiveChat: (data) => set(() => ({activeChat: data})),
+  clearChatStore: () => set(()=>({userChats: []}))
 }),{
   name: "lastActiveChat",
   storage: createJSONStorage(() => AsyncStorage),
