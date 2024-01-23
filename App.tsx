@@ -18,7 +18,7 @@ export default function App() {
 
   return(
     <NavigationContainer>
-      <StatusBar backgroundColor={'#17191f'} barStyle={'light-content'}/>
+      <StatusBar backgroundColor={'#18191e'} barStyle={'light-content'}/>
       <SocketWrapper _id={user._id}>
         <Stack.Navigator initialRouteName='Login'>
           <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>

@@ -64,9 +64,11 @@ export default function Login({navigation}:any) {
             <Icon.Quill/><Text style={styles.loginTitle}> Quill Messenger</Text>
           </View>
           <Text style={[{margin: 5, color: '#ffffff', fontSize: 18, fontWeight: 'bold',}]}>Welcome, User!</Text>
-          <Text style={styles.description}>We're glad to see you here!</Text>
-          <Text style={styles.description}>Log In or create a new account!</Text>
-          <Text style={styles.description}>Other people are waiting for you!</Text>
+          <Text style={styles.description}>
+            We're glad to see you here! {'\n'}
+            Log In or create a new account!{'\n'}
+            Other people are waiting for you!
+          </Text>
         </View>
         <TextInput
           onChangeText={(e) => setRawInput(e)}

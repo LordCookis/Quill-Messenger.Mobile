@@ -62,13 +62,6 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
     }
   }, [])
 
-  ////Delete socket.io instance after logging out
-  //useEffect(()=>{
-  //  if(route != "Login" || !socket){return}
-  //  socket.disconnect()
-  //  setSocket(null)
-  //}, [route])
-
   useEffect(()=>{
     if(!socket?.connected){return}
     socket.on('newMessage', (data: message) => {
@@ -98,7 +91,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
 
   return(
     <SocketContext.Provider value={socket}>
-      {!socket?.connected && route != "Login" ? <Loading/> : <></>}
+      {!socket?.connected && route != "Login" && route != undefined ? <Loading/> : <></>}
       {children}
     </SocketContext.Provider>
   )

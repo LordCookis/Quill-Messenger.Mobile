@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, TextInput, Pressable, Image, Keyboa
 import { Fragment, useContext, useEffect, useRef, useState } from "react"
 import Icon from "../../assets/Icons"
 import { useChatStore } from "../../stores/chat-store"
-import { useMessageStore } from '../../stores/messages-store'
+import { message, useMessageStore } from '../../stores/messages-store'
 import { sendMessageAPI } from "../../api/message-api"
 import { WarningContext } from "../../lib/warning/warning-context"
 import { useAccountStore } from "../../stores/account-store"
@@ -12,6 +12,7 @@ import { SocketContext } from '../../context/socket-context'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import { warningHook } from '../../lib/warning/warning-context'
+import { calculateDate, isDifferentDay } from '../../utils/calculate-date'
 
 export default function Chat({route}:any) {
   const {chatID} = route.params
@@ -77,19 +78,19 @@ export default function Chat({route}:any) {
           ref={ref}
           contentContainerStyle={{ alignItems: 'flex-end' }}>
           <View style={styles.chatMesseges}>
-            {messagesHistory[chatID]?.messages?.map((message: any) => {
+            {messagesHistory[chatID]?.messages?.map((message: message, index: number) => {
               const date = new Date(message.createdAt)
+              const nextMessageDate = messagesHistory[chatID]?.messages[index+1]?.createdAt
+              const isDifferentDate = isDifferentDay(message.createdAt, nextMessageDate)
               return(
                 <Fragment key={message._id}>
-                  <View style={message.senderID == user._id ? styles.myMessage : styles.notMyMessage}>
-                    <Image
-                      source={message.senderID == user._id ? {uri: user.avatar} : {uri: activeChat?.friend?.avatar}}
-                      style={[styles.avatar, {height: 30, width: 30, marginTop: 12,}]}/>
-                    <View style={message.senderID == user._id ? styles.myText : styles.notMyText}>
+                  <View style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage}>
+                    <View style={message.senderID == user._id ? styles.rightText : styles.leftText}>
                       <Text style={[{color: '#ffffff', fontSize: 15}]}>{message.text}</Text>
-                      <Text style={[styles.timeSent, message.senderID == user._id && {textAlign: 'right'}]}>{`${date.getHours()}:${date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()}`}</Text>
+                      <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{`${date.getHours()}:${date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()}`}</Text>
                     </View>
                   </View>
+                  {isDifferentDate ? <View style={styles.date}><View style={styles.line}/><Text style={styles.dateText}>{calculateDate('en-EN', nextMessageDate, 'date')}</Text><View style={styles.line}/></View> : <></>}
                 </Fragment>
               )})}
             {!messagesHistory[chatID]?.messages?.length ? <Text style={[{color: '#ffffff', fontSize: 15, textAlign: 'center'}]}>The chat is empty!</Text> : <></>}
@@ -154,27 +155,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chatMesseges: {
-    width: '100%',
     paddingRight: 10,
     paddingLeft: 10,
   },
-  myMessage: {
-    marginRight: 30,
+  rightMessage: {
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'flex-start',
     flexDirection: 'row-reverse',
     borderRadius: 10,
   },
-  notMyMessage: {
-    marginRight: 30,
+  leftMessage: {
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'flex-start',
     flexDirection: 'row',
     borderRadius: 10,
   },
-  myText: {
+  rightText: {
     padding: 5,
     margin: 5,
     display: 'flex',
@@ -183,7 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#d06af838',
   },
-  notMyText: {
+  leftText: {
     padding: 5,
     margin: 5,
     display: 'flex',
@@ -191,6 +189,23 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     borderRadius: 10,
     backgroundColor: '#ffffff11',
+  },
+  date: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  dateText: {
+    marginHorizontal: 5,
+    color: '#ffffff40',
+    fontSize: 13,
+  },
+  line: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderTopColor: '#ffffff1a',
   },
   timeSent: {
     fontSize: 13,
