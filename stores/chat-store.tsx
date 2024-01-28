@@ -7,7 +7,13 @@ export type chat = {
   members: string[],
   createdAt: string,
   updatedAt: string,
-  __v: number
+  inputMessage: string,
+  isTyping: boolean,
+  lastMessage: string,
+}
+
+export type chatArray = {
+  [key: string]: chat
 }
 
 export type friend = {
@@ -18,21 +24,42 @@ export type friend = {
 }
 
 interface chatStore {
-  userChats: chat[],
+  userChats: chatArray,
   activeChat: {chat: chat, friend: friend},
-  setUserChats: (data: chat[]) => void,
+  setUserChats: (data: chatArray) => void,
   addNewChat: (data: chat) => void,
+  setChatMessageTime: (data: {chatID: string, time: string}) => void,
+  setIsTyping: (data: {chatID: string, state: boolean}) => void,
+  setInputMessage: (data: {chatID: string, message: string}) => void,
   setActiveChat: (data: {chat: chat, friend: friend}) => void
   clearChatStore: () => void,
 }
 
 export const useChatStore = create<chatStore>()(persist((set) => ({
-  userChats: [],
+  userChats: {},
   activeChat: {},
-  setUserChats: (data) => set(() => ({ userChats: data })),
-  addNewChat: (data) => set((state: any) => ({userChats: [data, ...state.userChats]})),
-  setActiveChat: (data) => set(() => ({activeChat: data})),
-  clearChatStore: () => set(()=>({userChats: []}))
+  setUserChats: (data) => set((state: any) => ({ userChats: data })),
+  addNewChat: (data) => set((state: any) => ({ userChats: {...state.userChats, [data._id]: {
+    ...data,
+    isTyping: false,
+    lastMessage: ""
+  }}})),
+  setChatMessageTime: (data) => set((state: any) => ({ userChats: {...state.userChats, [data.chatID]: {
+    ...state.userChats[data.chatID],
+    lastMessage: data.time
+  }}})),
+  setIsTyping: (data) => set((state: any) => ({
+    userChats: {...state.userChats, [data.chatID]: {
+      ...state.userChats[data.chatID], isTyping: data.state
+    }}
+  })),
+  setInputMessage: (data) => set((state: any) => ({
+    userChats: {...state.userChats, [data.chatID]: {
+      ...state.userChats[data.chatID], inputMessage: data.message
+    }}
+  })),
+  setActiveChat: (data) => set((state: any) => ({activeChat: data})),
+  clearChatStore: () => set(()=>({userChats: {}}))
 }),{
   name: "lastActiveChat",
   storage: createJSONStorage(() => AsyncStorage),

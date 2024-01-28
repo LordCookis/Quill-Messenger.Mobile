@@ -11,8 +11,9 @@ import { WarningContext } from '../../lib/warning/warning-context'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import { warningHook } from '../../lib/warning/warning-context'
+import { calculateDate } from '../../utils/calculate-date'
 
-export default function Dialog({chat, chatStore, navigation}:any){
+export default function Dialog({chat, messagesStore, navigation}:any){
   const [opponentData, setOpponentData] = useState<any>()
   const {activeChat, setActiveChat} = useChatStore()
   const socket: Socket | any = useContext(SocketContext)
@@ -23,10 +24,10 @@ export default function Dialog({chat, chatStore, navigation}:any){
     text: "",
     time: "",
   })
-  
+
   const selectChat = () => {
     setActiveChat({chat: chat, friend: opponentData})
-    navigation.navigate('Chat', {chatID: chat._id})
+    navigation.navigate('DialogChat', {chatID: chat._id})
   }
 
   useEffect(()=>{
@@ -39,24 +40,24 @@ export default function Dialog({chat, chatStore, navigation}:any){
   }, [opponentData, socket?.connected])
 
   useEffect(()=>{
-    if(!chatStore?.messages?.length){return}
-    const timeDate = new Date(chatStore?.messages[chatStore?.messages.length-1].createdAt)
+    console.log(messageData.time)
+    if(!messagesStore?.messages?.length){return}
     setMessageData({
-      senderID: chatStore?.messages[chatStore?.messages.length-1].senderID,
-      text: chatStore?.messages[chatStore?.messages.length-1].text,
-      time: `${timeDate.getHours()}:${timeDate.getMinutes() < 10 ? "0" + timeDate.getMinutes() : timeDate.getMinutes()}`
+      senderID: messagesStore?.messages[messagesStore?.messages.length-1].senderID,
+      text: messagesStore?.messages[messagesStore?.messages.length-1].text,
+      time: `${calculateDate(messagesStore?.messages[messagesStore?.messages.length-1].createdAt, 'count')}`
     })
-  }, [chatStore])
+  }, [messagesStore])
 
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
-  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{chatStore?.inputMessage}</>
+  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
   const Message = () => <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
   {messageData?.text?.length ? messageData.text : "No messages yet..."}</>
 
   return(
     <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
-      {opponentData?.avatar ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: opponentData?.avatar}}/> : <></>}
+    {opponentData?.avatar ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: opponentData?.avatar}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{opponentData?.displayedName}</Text>
@@ -64,14 +65,13 @@ export default function Dialog({chat, chatStore, navigation}:any){
         </View>
         <View style={styles.bottom}>
           <Text style={styles.message}>
-            {chatStore?.isTyping ?
+            {chat?.isTyping ?
               <Typing/> :
-              chatStore?.inputMessage.length && activeChat.chat._id != chat._id ?
+              chat?.inputMessage.length && activeChat.chat._id != chat._id ?
                 <Draft/> :
                 <Message/>
             }
           </Text>
-          <Text style={styles.status}>0</Text>
         </View>
       </View>
     </View>
@@ -117,9 +117,6 @@ const styles = StyleSheet.create({
   },
   sentFromMe: {
     color: '#c577e4',
-  },
-  status: {
-    marginTop: 5,
   },
   typing: {
     color: '#c577e4',

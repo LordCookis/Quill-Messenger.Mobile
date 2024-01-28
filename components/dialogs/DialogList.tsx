@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, Pressable, TextInput, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, Pressable, TextInput, Dimensions, ScrollView } from 'react-native'
 import { useContext, useEffect, useState } from 'react'
 import Icon from "../../assets/Icons"
 import Menu from '../settings/Menu'
 import Dialog from './Dialog'
 import Group from '../groups/Group'
-import { useChatStore } from '../../stores/chat-store'
+import { chat, useChatStore } from '../../stores/chat-store'
 import { useGroupStore } from '../../stores/group-store'
 import { useAccountStore } from '../../stores/account-store'
 import { useMessageStore } from '../../stores/messages-store'
@@ -22,7 +22,7 @@ import { netRequestHandler } from '../../utils/net-request-handler'
 export default function DialogList({navigation}:any){
   const chatStore = useChatStore()
   const {userGroups, setUserGroups}:any = useGroupStore()
-  const {messagesHistory}: any = useMessageStore()
+  const messagesStore = useMessageStore()
   const [search, setSearch] = useState<string>("")
   const [rawInput, setRawInput] = useState('')
   const socket: Socket | any = useContext(SocketContext)
@@ -33,36 +33,32 @@ export default function DialogList({navigation}:any){
   const [focus, setFocus] = useState<boolean>(false)
 
   useEffect(()=>{
-    !chatStore.userChats.length && user._id && socket?.connected
-    focus ? fetchGroups() : fetchChats()
-  }, [user._id, socket?.connected, focus])
+    if(!socket?.connected){return}
+    focus ?
+    tryCatch(async()=>{
+      const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id), warning)
+      let newObj: any = {}
+      result.data?.chats?.map(async (chat: chat) => {
+        newObj[chat._id] = {...chat, isTyping: false, lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length-1]?.createdAt, inputMessage: ""}
+      })
+      chatStore.setUserChats(newObj)
+    }) :
+    tryCatch(async()=>{
+      const result = await netRequestHandler(()=>fetchUserGroupsAPI(user._id), warning)
+      setUserGroups(result.data.groups)
+    })
+  }, [socket?.connected])
 
   useEffect(() => {
     setSearch(inputFilter(rawInput))
   }, [rawInput])
 
-  const fetchChats = async() => {
-    tryCatch(async()=>{
-      const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id), warning)
-      console.log("Fetched chats", result)
-      chatStore.setUserChats(result.data.chats)
-    })
-  }
-
-  const fetchGroups = async() => {
-    tryCatch(async()=>{
-      const result = await netRequestHandler(()=>fetchUserGroupsAPI(user._id), warning)
-      console.log("Fetched groups", result)
-      setUserGroups(result.data.groups)
-    })
-  }
-
   const createNewChat = async() => {
     if(search == user.usertag){return}
     tryCatch(async()=>{
       const secondUser = await netRequestHandler(()=>fetchUserByTagAPI(search), warning)
-      const doesChatExist = chatStore.userChats.filter((chat: any) => {
-        if(chat.members[0] == secondUser.data._id || chat.members[1] == secondUser.data._id){ return true }
+      const doesChatExist = Object.keys(chatStore.userChats).filter((chat: any) => {
+        if(chatStore.userChats[chat].members[0] == secondUser.data._id || chatStore.userChats[chat].members[0] == secondUser.data._id){ return true }
       })
       if(doesChatExist.length){return}
       const newChat = await netRequestHandler(()=>createNewChatAPI(user._id, secondUser.data._id), warning)
@@ -97,14 +93,15 @@ export default function DialogList({navigation}:any){
           <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(false)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
           <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(true)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
         </View>
+        <ScrollView>
         {!focus ?
-          chatStore.userChats?.map((chat:any) => (
-            <Dialog key={chat._id} chat={chat} chatStore={messagesHistory[chat._id]} navigation={navigation}/>
+          Object.keys(chatStore.userChats)?.map((keyname: string) => (
+            <Dialog key={chatStore.userChats[keyname]._id} chat={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/>
           )) :
           userGroups?.map((group:any) => (
-            <Group key={group._id} group={group} groupStore={messagesHistory[group._id]} navigation={navigation}/>
-          ))
-        }
+            <Group key={group._id} group={group} messagesStore={messagesStore.messagesHistory[group._id]} navigation={navigation}/>
+          ))}
+        </ScrollView>
       </View>
     </View>
     </>

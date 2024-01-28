@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, Text, StyleSheet, Dimensions, TextInput, Pressable, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native"
+import { View, Text, StyleSheet, Dimensions, TextInput, Pressable, Image, KeyboardAvoidingView, ScrollView } from "react-native"
 import { Fragment, useContext, useEffect, useRef, useState } from "react"
 import Icon from "../../assets/Icons"
 import { useChatStore } from "../../stores/chat-store"
@@ -12,49 +12,65 @@ import { SocketContext } from '../../context/socket-context'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import { warningHook } from '../../lib/warning/warning-context'
-import { calculateDate, isDifferentDay } from '../../utils/calculate-date'
+import { calculateDate, differenceInMinutes, isDifferentDay } from '../../utils/calculate-date'
+import { friend } from '../../stores/chat-store'
+import { userData } from '../../types/types'
 
-export default function Chat({route}:any) {
+type messageData = {
+  message: message,
+  nextMessage: {
+    date: string,
+    samePerson: boolean,
+    differentDate: boolean,
+    minutes: number
+  },
+  user: userData,
+  opponent: friend,
+  date: Date
+}
+
+export default function DialogChat({route}:any) {
   const {chatID} = route.params
-  const {activeChat} = useChatStore()
+  const chatStore = useChatStore()
   const user = useAccountStore()
   const warning = useContext<warningHook>(WarningContext)
   const socket: Socket | any = useContext(SocketContext)
   const ref = useRef<any>(null)
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const [typingTimer, setTypingTimer] = useState<any>(null)
-  const {messagesHistory, addMessage, setInputMessage}:any = useMessageStore()
+  const {messagesHistory, addMessage}:any = useMessageStore()
 
   useEffect(()=>{
     if(!messagesHistory[chatID]?.messages?.length){return}
-    ref.current?.scrollToEnd({animated: true})
+    ref.current?.scrollToEnd({animated: false})
   }, [messagesHistory[chatID]?.messages?.length])
 
   const sendNewMessage = async() => {
-    if(!messagesHistory[chatID]?.inputMessage || !socket){return}
+    if(!chatStore.userChats[chatID]?.inputMessage || !socket){return}
     tryCatch(async()=>{
-      const sentMessage = await netRequestHandler(()=>sendMessageAPI(chatID, user._id, messagesHistory[chatID]?.inputMessage), warning)
-      socket.emit('newMessage', {message: sentMessage.data, recipientID: activeChat.friend._id})
+      const sentMessage = await netRequestHandler(()=>sendMessageAPI(chatID, user._id, chatStore.userChats[chatID]?.inputMessage), warning)
+      socket.emit('newMessage', {message: sentMessage.data, recipientID: chatStore.activeChat.friend._id})
       addMessage(sentMessage.data)
-      setInputMessage({chatID, message: ""})
+      chatStore.setInputMessage({chatID, message: ""})
+      chatStore.setChatMessageTime({chatID, time: sentMessage.data.createdAt})
     })
   }
 
   const startTyping = () => {
     if(!socket){return}
-    clearTimeout(typingTimer)
+    clearTimeout(typingTimer);
     stopTyping()
     if(isTyping){return}
-    setIsTyping(true)
-    socket.emit('typing', {state: true, recipientID: activeChat.friend._id, chatID})
+    setIsTyping(true);
+    socket.emit('typing', {state: true, recipientID: chatStore.activeChat.friend._id, chatID})
   }
 
   const stopTyping = () => {
     if(!socket){return}
-    clearTimeout(typingTimer)
+    clearTimeout(typingTimer);
     setTypingTimer(setTimeout(() => {
       setIsTyping(false)
-      socket.emit('typing', {state: false, recipientID: activeChat.friend._id, chatID})
+      socket.emit('typing', {state: false, recipientID: chatStore.activeChat.friend._id, chatID})
     }, 1000))
   }
 
@@ -65,32 +81,37 @@ export default function Chat({route}:any) {
   return(
     <View style={styles.chatBox}>
       <View style={styles.topPanel}>
-        {activeChat?.friend?.avatar ? <Image source={{uri:activeChat?.friend?.avatar}} style={[styles.avatar, {margin: 5}]}/> : <></>}
-        <Text style={styles.displayedName}>{activeChat?.friend?.displayedName}</Text>
-        <Text style={styles.usertag}>{activeChat?.friend?.usertag}
+        {chatStore.activeChat?.friend?.avatar ? <Image source={{uri:chatStore.activeChat?.friend?.avatar}} style={[styles.avatar, {margin: 5}]}/> : <></>}
+        <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
+        <Text style={styles.usertag}>{chatStore.activeChat?.friend?.usertag}
           {messagesHistory[chatID]?.isTyping 
           ? <Text style={styles.typing}><Icon.AnimatedPen/>Typing...</Text> 
           : <></>}
         </Text>
       </View>
-      <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
+      <KeyboardAvoidingView behavior={'height'} style={{flex: 1}}>
         <ScrollView
           ref={ref}
-          contentContainerStyle={{ alignItems: 'flex-end' }}>
+          contentContainerStyle={{alignItems: 'flex-end'}}>
           <View style={styles.chatMesseges}>
             {messagesHistory[chatID]?.messages?.map((message: message, index: number) => {
               const date = new Date(message.createdAt)
-              const nextMessageDate = messagesHistory[chatID]?.messages[index+1]?.createdAt
-              const isDifferentDate = isDifferentDay(message.createdAt, nextMessageDate)
+              const nextMessage = {
+                date: messagesHistory[chatID]?.messages[index+1]?.createdAt,
+                samePerson: messagesHistory[chatID]?.messages[index+1]?.senderID == message.senderID,
+                differentDate: isDifferentDay(message.createdAt, messagesHistory[chatID]?.messages[index+1]?.createdAt),
+                minutes: differenceInMinutes(message.createdAt, messagesHistory[chatID]?.messages[index+1]?.createdAt)
+              }
               return(
                 <Fragment key={message._id}>
                   <View style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage}>
                     <View style={message.senderID == user._id ? styles.rightText : styles.leftText}>
                       <Text style={[{color: '#ffffff', fontSize: 15}]}>{message.text}</Text>
-                      <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{`${date.getHours()}:${date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()}`}</Text>
+                      <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{calculateDate(date.toString(), 'time')}</Text>
                     </View>
                   </View>
-                  {isDifferentDate ? <View style={styles.date}><View style={styles.line}/><Text style={styles.dateText}>{calculateDate('en-EN', nextMessageDate, 'date')}</Text><View style={styles.line}/></View> : <></>}
+                  {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? <View style={styles.spacing}/> : <></>}
+                  {nextMessage.differentDate ? <View style={styles.date}><View style={styles.line}/><Text style={styles.dateText}>{calculateDate(nextMessage.date, 'date')}</Text><View style={styles.line}/></View> : <></>}
                 </Fragment>
               )})}
             {!messagesHistory[chatID]?.messages?.length ? <Text style={[{color: '#ffffff', fontSize: 15, textAlign: 'center'}]}>The chat is empty!</Text> : <></>}
@@ -98,9 +119,8 @@ export default function Chat({route}:any) {
         </ScrollView>
         <View style={styles.viewMessages}>
           <TextInput 
-            value={messagesHistory[chatID]?.inputMessage || ""}
             style={styles.inputMessages}
-            onChangeText={(e)=>{setInputMessage({chatID, message: e});startTyping()}}
+            onChangeText={(e)=>{chatStore.setInputMessage({chatID, message: e});startTyping()}}
           />
           <Pressable onPress={sendNewMessage}><Icon.SendArrow/></Pressable>
         </View>
@@ -117,7 +137,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#18191e',
   },
   topPanel: {
-    height: '10%',
+    padding: 10,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -155,6 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chatMesseges: {
+    width: '100%',
     paddingRight: 10,
     paddingLeft: 10,
   },
@@ -202,6 +223,9 @@ const styles = StyleSheet.create({
     color: '#ffffff40',
     fontSize: 13,
   },
+  spacing: {
+
+  },
   line: {
     flex: 1,
     borderTopWidth: 1,
@@ -213,8 +237,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   viewMessages: {
-    borderTopWidth: 2,
-    borderTopColor: '#c577e4',
     marginBottom: 10,
     display: 'flex',
     justifyContent: 'center',

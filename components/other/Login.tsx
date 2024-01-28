@@ -96,9 +96,10 @@ export default function Login({navigation}:any) {
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
         />}
-        <Pressable><Text 
+        <Pressable><Text
           onPress={tab ? registerNewAccount : loginAccount}
-          style={styles.loginButton}
+          style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}
+          disabled={!userInputs.usertag || !userInputs.password.length}
         >{tab ? "Register" : "Login"}</Text></Pressable>
         <Pressable><Text onPress={()=>setTab(!tab)} style={styles.tabButton}>{!tab ? "I don't have an account!" : "I have an account!"}</Text></Pressable>
       </View>
@@ -173,6 +174,17 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 5,
     backgroundColor: '#302e39',
+    borderRadius: 10,
+    fontFamily: 'monospace',
+    textAlign: 'center',
+    color: '#cccccc',
+    fontSize: 15,
+  },
+  activeButton: {
+    width: 280,
+    padding: 10,
+    margin: 5,
+    backgroundColor: '#7d4ba746',
     borderRadius: 10,
     fontFamily: 'monospace',
     textAlign: 'center',

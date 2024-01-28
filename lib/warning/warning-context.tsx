@@ -1,6 +1,6 @@
 import useWarning from "./use-warning"
 import React from "react"
-import { StyleSheet } from "react-native"
+import { View, Text,  Pressable, StyleSheet } from "react-native"
 
 export const WarningContext: any = React.createContext(null)
 
@@ -24,16 +24,16 @@ export default function WarningProvider({children}: any){
     <WarningContext.Provider value={warningHook}>
       {warningHook.isError
       ?
-        <div style={styles.errorWindow} onClick={()=>warningHook.closeWindow()}>
-          <div style={styles.errorBlock} onClick={(e)=>e.stopPropagation()}>
-            <div style={styles.errorTitle}>{warningHook.error.title}</div>
-            <div style={styles.errorMessage}>{warningHook.error.message}</div>
-            <div style={styles.actionButtons}>
-              {warningHook.error.fn ? <button onClick={()=>{warningHook.error.fn(); warningHook.closeWindow()}}>Continue</button> : <></>}
-              <button onClick={()=>warningHook.closeWindow()}>Close</button>
-            </div>
-          </div>
-        </div>
+        <Pressable onPress={()=>warningHook.closeWindow()}><View style={styles.errorWindow}>
+          <Pressable onPress={(e:any)=>e.stopPropagation()}><View style={styles.errorBlock}>
+            <View style={styles.errorTitle}>{warningHook.error.title}</View>
+            <View style={styles.errorMessage}>{warningHook.error.message}</View>
+            <View style={styles.actionButtons}>
+              {warningHook.error.fn ? <Pressable><Text onPress={()=>{warningHook.error.fn(); warningHook.closeWindow()}}>Continue</Text></Pressable> : <></>}
+              <Pressable><Text onPress={()=>warningHook.closeWindow()}>Close</Text></Pressable>
+            </View>
+          </View></Pressable>
+        </View></Pressable>
       : <></>}
       {children}
     </WarningContext.Provider>
@@ -46,5 +46,4 @@ const styles = StyleSheet.create({
   errorTitle: {},
   errorMessage: {},
   actionButtons: {},
-
 })

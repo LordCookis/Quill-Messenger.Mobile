@@ -23,7 +23,6 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
   avatar: "",
   usertag: "",
   displayedName: "",
-  lastOnline: "",
   setUser: (userdata: userData) => set(() => ({
     _id: userdata._id,
     usertag: userdata.usertag,

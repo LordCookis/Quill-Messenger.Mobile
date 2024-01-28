@@ -1,8 +1,6 @@
 export type userData = {
   avatar: string,
   displayedName: string,
-  isOnline: false,
-  lastOnline: string | number
   usertag: string,
   _id: string
 }
@@ -12,5 +10,7 @@ export type chat = {
   members: string[],
   createdAt: string,
   updatedAt: string,
-  __v: number
+  inputMessage: string,
+  isTyping: boolean,
+  lastMessage: string,
 }

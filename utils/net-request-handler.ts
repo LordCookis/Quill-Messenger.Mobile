@@ -1,4 +1,4 @@
-import { warningHook } from "../lib/warning/warning-context"
+import { warningHook } from '../lib/warning/warning-context'
 
 type requestResult = {
   status: number,

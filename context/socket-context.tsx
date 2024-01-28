@@ -6,30 +6,30 @@ import { useNavigation } from '@react-navigation/native'
 import { useChatStore } from '../stores/chat-store'
 import { useMessageStore } from '../stores/messages-store'
 import io, { Socket } from "socket.io-client"
-import { WarningContext } from '../lib/warning/warning-context'
 import { message } from '../stores/messages-store'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
-import { warningHook } from '../lib/warning/warning-context'
+import { WarningContext, warningHook } from '../lib/warning/warning-context'
 
 export const SocketContext: any = createContext(null)
 
 export default function SocketWrapper({children, _id}: {children: React.ReactNode, _id: string}){
-  const {userChats} = useChatStore()
+  const chatStore = useChatStore()
   const warning = useContext<warningHook>(WarningContext)
-  const {addMessage, setChatHistory, setIsTyping} = useMessageStore()
+  const messagesStore = useMessageStore()
   const [socket, setSocket] = useState<Socket | null | any>()
-  const navigation = useNavigation()
-  const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
+  //const navigation = useNavigation()
+  //const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('state', () => {
-      setRoute(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
-    })
-    return unsubscribe
-  }, [navigation])
+  //useEffect(() => {
+  //  const unsubscribe = navigation.addListener('state', () => {
+  //    setRoute(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
+  //  })
+  //  return unsubscribe
+  //}, [navigation])
 
   useEffect(()=>{
+    //if(route == 'Login'){return}
     const newSocket = io(`ws://192.168.1.194:4000/?_id=${_id}`, {
       reconnection: true,
       reconnectionDelay: 2000,
@@ -65,10 +65,11 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   useEffect(()=>{
     if(!socket?.connected){return}
     socket.on('newMessage', (data: message) => {
-      addMessage(data)
+      chatStore.setChatMessageTime({chatID: data.chatID, time: data.createdAt})
+      messagesStore.addMessage(data)
     })
     socket.on('typing', (data: {chatID: string, state: boolean}) => {
-      setIsTyping({chatID: data.chatID, state: data.state})
+      chatStore.setIsTyping({chatID: data.chatID, state: data.state})
     })
     return () => {
       socket.off('newMessage')
@@ -78,20 +79,21 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
 
   useEffect(()=>{
     fillMessagesPreview()
-  }, [userChats])
+  }, [chatStore.userChats])
 
   const fillMessagesPreview = async() => {
-    for(let i = 0; i < userChats.length; i++){
+    Object.keys(chatStore.userChats).map((chat: string) => {
+      if(messagesStore?.messagesHistory[chat]?.messages?.length){return}
       tryCatch(async()=>{
-        const latestMessage = await netRequestHandler(()=>fetchLatestMessageAPI(userChats[i]._id), warning)
-        setChatHistory({chatID: userChats[i]._id, messages: latestMessage.data.reverse()})
+        const latestMessage = await netRequestHandler(()=>fetchLatestMessageAPI(chatStore.userChats[chat]._id), warning)
+        messagesStore.setChatHistory({chatID: chat, messages: latestMessage.data.reverse()})
       })
-    }
+    })
   }
 
   return(
     <SocketContext.Provider value={socket}>
-      {!socket?.connected && route != "Login" && route != undefined ? <Loading/> : <></>}
+      {/*!socket?.connected && route != "Login" && route != undefined ? <Loading/> : <></>*/}
       {children}
     </SocketContext.Provider>
   )

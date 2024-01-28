@@ -11,7 +11,8 @@ export default function Menu({navigation, setTab}:any){
   const user:any = useAccountStore()
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
-  const leave = () => {
+
+  const logout = () => {
     logoutAPI()
     user.clearAccountStore()
     chat.clearChatStore()
@@ -37,7 +38,7 @@ export default function Menu({navigation, setTab}:any){
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Interface')}><Icon.Settings/><Text style={styles.buttonText}> Интрефейс</Text></Pressable>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>
-          <Pressable style={styles.button} onPress={leave}><Icon.Logout/><Text style={[{color: 'coral',}]}> Выход</Text></Pressable>
+          <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={[{color: 'coral',}]}> Выход</Text></Pressable>
         </View>
       </View>
       <Pressable style={styles.back} onPress={()=>setTab(false)}></Pressable>
