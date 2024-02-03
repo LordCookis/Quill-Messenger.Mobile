@@ -36,6 +36,7 @@ export default function DialogList({navigation}:any){
     if(!socket?.connected){return}
     focus ?
     tryCatch(async()=>{
+      console.log(1)
       const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id), warning)
       let newObj: any = {}
       result.data?.chats?.map(async (chat: chat) => {
