@@ -50,7 +50,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
   }, [messagesStore])
 
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
-  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.lastMessage}</>
+  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
   const Message = () => <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
   {messageData?.text?.length ? messageData.text : "No messages yet..."}</>
 
@@ -65,11 +65,12 @@ export default function Dialog({chat, messagesStore, navigation}:any){
         </View>
         <View style={styles.bottom}>
           <Text style={styles.message}>
-          {chat?.isTyping
-            ? <Typing />
-            : chat?.inputMessage?.length && activeChat.chat._id != chat._id
-              ? <Draft />
-              : <Message />}
+            {chat?.isTyping ?
+              <Typing/> :
+              chat?.inputMessage.length && activeChat.chat._id != chat._id ?
+                <Draft/> :
+                <Message/>
+            }
           </Text>
         </View>
       </View>

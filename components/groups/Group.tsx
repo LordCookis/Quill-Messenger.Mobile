@@ -21,6 +21,8 @@ export default function Group({group, groupStore, navigation}:any){
     text: "",
     time: "",
   })
+
+  useEffect(()=>{console.log(group)},[])
   
   const selectGroup = () => {
     //navigation.navigate('GroupBox', {groupID: group._id})

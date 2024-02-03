@@ -42,7 +42,7 @@ export default function DialogChat({route}:any) {
 
   useEffect(()=>{
     if(!messagesHistory[chatID]?.messages?.length){return}
-    ref.current?.scrollToEnd({animated: true})
+    ref.current?.scrollToEnd({animated: false})
   }, [messagesHistory[chatID]?.messages?.length])
 
   const sendNewMessage = async() => {
@@ -121,7 +121,6 @@ export default function DialogChat({route}:any) {
           <TextInput 
             style={styles.inputMessages}
             onChangeText={(e)=>{chatStore.setInputMessage({chatID, message: e});startTyping()}}
-            value={chatStore.userChats[chatID]?.inputMessage || ""}
           />
           <Pressable onPress={sendNewMessage}><Icon.SendArrow/></Pressable>
         </View>
