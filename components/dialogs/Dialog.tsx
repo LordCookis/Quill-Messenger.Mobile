@@ -67,7 +67,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
           <Text style={styles.message}>
             {chat?.isTyping ?
               <Typing/> :
-              chat?.inputMessage.length && activeChat.chat._id != chat._id ?
+              chat?.inputMessage?.length && activeChat.chat._id != chat._id ?
                 <Draft/> :
                 <Message/>
             }
