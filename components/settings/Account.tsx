@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useState, useContext } from 'react'
 import { StyleSheet, View, Dimensions, Image, TextInput, Text, Pressable } from 'react-native'
 import { updateUserProfileAPI } from '../../api/user-api'

@@ -7,13 +7,13 @@ import { useAccountStore } from '../../stores/account-store'
 import { Socket } from 'socket.io-client'
 import { SocketContext } from '../../context/socket-context'
 import { WarningContext } from '../../lib/warning/warning-context'
-import { fetchUserByIdAPI } from '../../api/user-api'
+import { fetchUserChatsAPI } from '../../api/chat-api'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import { tryCatch } from '../../utils/try-catch'
 import { createNewGroupAPI } from '../../api/group-api'
 
 export default function GroupCreat({navigation}:any) {
-  const {userChats}:any = useChatStore()
+  const chatStore = useChatStore()
   const [members, setMembers] = useState<any>([])
   const [groupName, setGroupName] = useState<string>('')
   const user = useAccountStore()
@@ -23,13 +23,13 @@ export default function GroupCreat({navigation}:any) {
 
   useEffect(()=>{
     if(members.length || !socket?.connected){return}
-    userChats.map((chat:any) => { 
-      const userID = chat.members.filter((userID:string) => userID !== user._id)[0]
-      tryCatch(async()=>{
-        const result = await netRequestHandler(()=>fetchUserByIdAPI(userID), warning)
-        setMembers((prevMembers:any) => [...prevMembers, result.data])
-      })
-    })
+    console.log(user)
+    //chatStore.userChats.map((chat:any) => { 
+    //  const userID = chat.members.filter((userID:string) => userID !== user._id)[0]
+    //  tryCatch(async()=>{
+    //    setMembers((prevMembers:any) => [...prevMembers, result.data])
+    //  })
+    //})
   }, [])
 
   const newMember = (memberID:string) => {

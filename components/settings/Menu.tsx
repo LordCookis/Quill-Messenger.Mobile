@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useContext } from 'react'
 import { StyleSheet, View, Image, Dimensions, Pressable, Text } from 'react-native'
 import { logoutAPI } from "../../api/user-api"
@@ -6,11 +5,17 @@ import { WarningContext } from "../../lib/warning/warning-context"
 import { useAccountStore } from "../../stores/account-store"
 import { useChatStore } from "../../stores/chat-store"
 import Icon from '../../assets/Icons'
+import Animated, { withSpring } from 'react-native-reanimated'
 
-export default function Menu({navigation, setTab}:any){
+export default function Menu({navigation, setTab, animWight}:any){
   const user:any = useAccountStore()
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
+
+  const closeMenu = () => {
+    setTab(false)
+    animWight.value = withSpring(0)
+  }
 
   const logout = () => {
     logoutAPI()
@@ -20,7 +25,7 @@ export default function Menu({navigation, setTab}:any){
   }
 
   return(
-    <View style={styles.menu}>
+    <Animated.View style={[styles.menu, {width: animWight}]}>
       <View style={styles.panel}>
         <View style={styles.titleView}><Icon.Quill/><Text style={styles.titleText}>Quill Messenger</Text></View>
           <View style={styles.userData}>
@@ -37,12 +42,12 @@ export default function Menu({navigation, setTab}:any){
         <View style={styles.buttons}>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Interface')}><Icon.Settings/><Text style={styles.buttonText}> Интрефейс</Text></Pressable>
-          <Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>
-          <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={[{color: 'coral',}]}> Выход</Text></Pressable>
+          {/*<Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>*/}
+          <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={{color: 'coral'}}> Выход</Text></Pressable>
         </View>
       </View>
-      <Pressable style={styles.back} onPress={()=>setTab(false)}></Pressable>
-    </View>
+      <Pressable style={styles.back} onPress={closeMenu}></Pressable>
+    </Animated.View>
   )
 }
 
@@ -51,7 +56,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 1,
     height: Dimensions.get('window').height,
-    width: Dimensions.get('window').width,
     flexDirection: 'row',
   },
   panel: {

@@ -18,6 +18,7 @@ import { SocketContext } from '../../context/socket-context'
 import { Socket } from 'socket.io-client'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
+import { useSharedValue, withSpring } from 'react-native-reanimated'
 
 export default function DialogList({navigation}:any){
   const chatStore = useChatStore()
@@ -31,17 +32,20 @@ export default function DialogList({navigation}:any){
   const [tab, setTab] = useState<boolean>(false)
   const [find, setFind] = useState<boolean>(false)
   const [focus, setFocus] = useState<boolean>(false)
+  const animWight = useSharedValue(0)
 
   useEffect(()=>{
     if(!socket?.connected){return}
-    focus ?
+    !focus ?
     tryCatch(async()=>{
       const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id), warning)
       let newObj: any = {}
+      console.log(result.data)
       result.data?.chats?.map(async (chat: chat) => {
         newObj[chat._id] = {...chat, isTyping: false, lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length-1]?.createdAt, inputMessage: ""}
       })
       chatStore.setUserChats(newObj)
+      console.log(newObj)
     }) :
     tryCatch(async()=>{
       const result = await netRequestHandler(()=>fetchUserGroupsAPI(user._id), warning)
@@ -66,12 +70,17 @@ export default function DialogList({navigation}:any){
     })
   }
 
+  const openMenu = () => {
+    setTab(true)
+    animWight.value = withSpring(animWight.value + Dimensions.get('window').width)
+  }
+
   return(
     <>
-    {tab && <Menu navigation={navigation} setTab={setTab}/>}
+    {tab ? <Menu navigation={navigation} setTab={setTab} animWight={animWight}/> : <></>}
     <View style={styles.chatlist}>
       <View style={styles.searchBlock}>
-        <Pressable onPress={()=>setTab(true)}>
+        <Pressable onPress={openMenu}>
           <Icon.AddUser/>
         </Pressable>
         {find ? 

@@ -43,6 +43,7 @@ export default function DialogChat({route}:any) {
   useEffect(()=>{
     if(!messagesHistory[chatID]?.messages?.length){return}
     ref.current?.scrollToEnd({animated: false})
+    console.log(chatStore.activeChat)
   }, [messagesHistory[chatID]?.messages?.length])
 
   const sendNewMessage = async() => {
@@ -58,10 +59,10 @@ export default function DialogChat({route}:any) {
 
   const startTyping = () => {
     if(!socket){return}
-    clearTimeout(typingTimer);
+    clearTimeout(typingTimer)
     stopTyping()
     if(isTyping){return}
-    setIsTyping(true);
+    setIsTyping(true)
     socket.emit('typing', {state: true, recipientID: chatStore.activeChat.friend._id, chatID})
   }
 

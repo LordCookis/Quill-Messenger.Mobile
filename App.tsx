@@ -17,19 +17,19 @@ export default function App() {
   const Stack = createNativeStackNavigator()
 
   return(
-    <SocketWrapper _id={user._id}>
-      <StatusBar backgroundColor={'#18191e'} barStyle={'light-content'}/>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName='Login'>
-          <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
-          <Stack.Screen name='DialogList' component={DialogList} options={{ headerShown: false }}/>
-          <Stack.Screen name='DialogChat' component={DialogChat} options={{ headerShown: false }}/>
-          <Stack.Screen name='Group' component={Group} options={{ headerShown: false }}/>
-          <Stack.Screen name='Account' component={Account} options={{ headerShown: false }}/>
-          <Stack.Screen name='Interface' component={Interface} options={{ headerShown: false }}/>
-          <Stack.Screen name='GroupCreat' component={GroupCreat} options={{ headerShown: false }}/>
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SocketWrapper>
+    <NavigationContainer>
+    <StatusBar backgroundColor={'#18191e'} barStyle={'light-content'}/>
+      <SocketWrapper _id={user._id}>
+      <Stack.Navigator initialRouteName='Login'>
+        <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
+        <Stack.Screen name='DialogList' component={DialogList} options={{ headerShown: false }}/>
+        <Stack.Screen name='DialogChat' component={DialogChat} options={{ headerShown: false }}/>
+        <Stack.Screen name='Group' component={Group} options={{ headerShown: false }}/>
+        <Stack.Screen name='Account' component={Account} options={{ headerShown: false }}/>
+        <Stack.Screen name='Interface' component={Interface} options={{ headerShown: false }}/>
+        <Stack.Screen name='GroupCreat' component={GroupCreat} options={{ headerShown: false }}/>
+      </Stack.Navigator>
+      </SocketWrapper>
+    </NavigationContainer>
   )
 }

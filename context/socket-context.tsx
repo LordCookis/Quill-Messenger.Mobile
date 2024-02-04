@@ -18,15 +18,15 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   const warning = useContext<warningHook>(WarningContext)
   const messagesStore = useMessageStore()
   const [socket, setSocket] = useState<Socket | null | any>()
-  //const navigation = useNavigation()
-  //const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
+  const navigation = useNavigation()
+  const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
 
-  //useEffect(() => {
-  //  const unsubscribe = navigation.addListener('state', () => {
-  //    setRoute(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
-  //  })
-  //  return unsubscribe
-  //}, [navigation])
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('state', () => {
+      setRoute(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
+    })
+    return unsubscribe
+  }, [navigation])
 
   useEffect(()=>{
     //if(route == 'Login'){return}
@@ -57,7 +57,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
       setSocket({...socket, connected: false})
     })
     return () => {
-      newSocket.disconnect()
+      //newSocket.disconnect()
       newSocket.removeAllListeners()
     }
   }, [])
@@ -93,7 +93,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
 
   return(
     <SocketContext.Provider value={socket}>
-      {/*!socket?.connected && route != "Login" && route != undefined ? <Loading/> : <></>*/}
+      {!socket?.connected && route != "Login" && route != undefined ? <Loading/> : <></>}
       {children}
     </SocketContext.Provider>
   )
