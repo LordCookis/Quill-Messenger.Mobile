@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, Pressable, TextInput, Dimensions, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, Pressable, TextInput, ScrollView } from 'react-native'
 import { useContext, useEffect, useState } from 'react'
 import Icon from "../../assets/Icons"
 import Menu from '../settings/Menu'
@@ -18,7 +18,8 @@ import { SocketContext } from '../../context/socket-context'
 import { Socket } from 'socket.io-client'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
-import { useSharedValue, withSpring } from 'react-native-reanimated'
+import { useSharedValue, withTiming, Easing } from 'react-native-reanimated'
+import { stylesData } from '../../styles/stylesData'
 
 export default function DialogList({navigation}:any){
   const chatStore = useChatStore()
@@ -29,7 +30,6 @@ export default function DialogList({navigation}:any){
   const socket: Socket | any = useContext(SocketContext)
   const warning = useContext<any>(WarningContext)
   const user = useAccountStore()
-  const [tab, setTab] = useState<boolean>(false)
   const [find, setFind] = useState<boolean>(false)
   const [focus, setFocus] = useState<boolean>(false)
   const animWight = useSharedValue(0)
@@ -70,14 +70,11 @@ export default function DialogList({navigation}:any){
     })
   }
 
-  const openMenu = () => {
-    setTab(true)
-    animWight.value = withSpring(animWight.value + Dimensions.get('window').width)
-  }
+  const openMenu = () => {animWight.value = withTiming(animWight.value + stylesData.width, {duration: 250, easing: Easing.linear})}
 
   return(
     <>
-    {tab ? <Menu navigation={navigation} setTab={setTab} animWight={animWight}/> : <></>}
+    <Menu navigation={navigation} animWight={animWight}/>
     <View style={styles.chatlist}>
       <View style={styles.searchBlock}>
         <Pressable onPress={openMenu}>
@@ -89,7 +86,7 @@ export default function DialogList({navigation}:any){
           value={search}
           onChangeText={(e)=>setRawInput(e)}
           placeholder="Search by tag"
-          placeholderTextColor={'#2c2f38'}
+          placeholderTextColor={stylesData.gray}
         /> : 
         <Pressable onPress={()=>setFind(true)}><Text style={styles.chatHeader}>Messages</Text></Pressable>}
         <Pressable onPress={createNewChat}>
@@ -119,23 +116,23 @@ export default function DialogList({navigation}:any){
 
 const styles = StyleSheet.create({
   chatlist: {
+    height: stylesData.height,
+    width: stylesData.width,
     position: 'relative',
     zIndex: 0,
     display: 'flex',
     flexDirection:  'column',
     alignItems: 'center',
-    height: Dimensions.get('window').height,
-    width: Dimensions.get('window').width,
-    backgroundColor: '#18191e',
+    backgroundColor: stylesData.accent2,
   },
   chatHeader: {
     fontFamily: 'monospace',
     fontSize: 30,
-    color: '#ffffff',
+    color: stylesData.white,
   },
   searchBlock: {
-    height: '10%',
-    width: '100%',
+    height: stylesData.height * 0.1,
+    width: stylesData.width,
     paddingTop: 10,
     paddingBottom: 5,
     paddingHorizontal: 20,
@@ -148,10 +145,10 @@ const styles = StyleSheet.create({
     margin: 5,
     padding: 10,
     fontSize: 13,
-    width: '70%',
+    width: stylesData.width * 0.7,
     borderRadius: 10,
-    color: '#ffffff',
-    backgroundColor: "#1e2027",
+    color: stylesData.white,
+    backgroundColor: stylesData.accent1,
   },
   block: {
     flexDirection: 'column',
@@ -159,11 +156,11 @@ const styles = StyleSheet.create({
   },
   legend: {
     margin: 5,
-    color: '#ffffff',
+    color: stylesData.white,
     fontFamily: 'monospace',
   },
   type: {
-    width: Dimensions.get('window').width,
+    width: stylesData.width,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -172,7 +169,7 @@ const styles = StyleSheet.create({
   typeFocus: {
     flex: 1,
     borderBottomWidth: 1.5,
-    borderBottomColor: '#c577e4',
+    borderBottomColor: stylesData.appmessage,
     alignItems: 'center',
   },
   typeNoFocus: {
@@ -183,7 +180,7 @@ const styles = StyleSheet.create({
   typeText: {
     margin: 10,
     fontSize: 15,
-    color: '#ffffff',
+    color: stylesData.white,
     fontFamily: 'monospace',
   },
 })

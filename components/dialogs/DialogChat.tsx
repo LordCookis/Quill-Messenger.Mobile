@@ -15,6 +15,7 @@ import { warningHook } from '../../lib/warning/warning-context'
 import { calculateDate, differenceInMinutes, isDifferentDay } from '../../utils/calculate-date'
 import { friend } from '../../stores/chat-store'
 import { userData } from '../../types/types'
+import { stylesData } from '../../styles/stylesData'
 
 type messageData = {
   message: message,
@@ -107,7 +108,7 @@ export default function DialogChat({route}:any) {
                 <Fragment key={message._id}>
                   <View style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage}>
                     <View style={message.senderID == user._id ? styles.rightText : styles.leftText}>
-                      <Text style={[{color: '#ffffff', fontSize: 15}]}>{message.text}</Text>
+                      <Text style={[{color: stylesData.white, fontSize: 15}]}>{message.text}</Text>
                       <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{calculateDate(date.toString(), 'time')}</Text>
                     </View>
                   </View>
@@ -115,7 +116,7 @@ export default function DialogChat({route}:any) {
                   {nextMessage.differentDate ? <View style={styles.date}><View style={styles.line}/><Text style={styles.dateText}>{calculateDate(nextMessage.date, 'date')}</Text><View style={styles.line}/></View> : <></>}
                 </Fragment>
               )})}
-            {!messagesHistory[chatID]?.messages?.length ? <Text style={[{color: '#ffffff', fontSize: 15, textAlign: 'center'}]}>The chat is empty!</Text> : <></>}
+            {!messagesHistory[chatID]?.messages?.length ? <Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>The chat is empty!</Text> : <></>}
           </View>
         </ScrollView>
         <View style={styles.viewMessages}>
@@ -133,9 +134,9 @@ export default function DialogChat({route}:any) {
 const styles = StyleSheet.create({
   chatBox: {
     overflow: 'hidden',
-    height: Dimensions.get('window').height,
-    width: Dimensions.get('window').width,
-    backgroundColor: '#18191e',
+    height: stylesData.height,
+    width: stylesData.width,
+    backgroundColor: stylesData.accent2,
   },
   topPanel: {
     padding: 10,
@@ -152,31 +153,29 @@ const styles = StyleSheet.create({
   displayedName: {
     marginRight: 5,
     fontSize: 18,
-    color: '#ffffff',
+    color: stylesData.white,
   },
   usertag: {
     fontSize: 14,
-    color: '#ffffff50',
+    color: stylesData.darkGray,
   },
   typing: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#ffffff',
+    color: stylesData.white,
     top: 45,
     left: 420,
     opacity: 0.4,
     fontSize: 13,
   },
   chatContent: {
-    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   chatMesseges: {
-    width: '100%',
     paddingRight: 10,
     paddingLeft: 10,
   },
@@ -196,21 +195,21 @@ const styles = StyleSheet.create({
   },
   rightText: {
     padding: 5,
-    margin: 5,
+    margin: 2,
     display: 'flex',
     alignItems: 'flex-end',
     flexDirection: 'column',
     borderRadius: 10,
-    backgroundColor: '#d06af838',
+    backgroundColor: stylesData.rightMessage,
   },
   leftText: {
     padding: 5,
-    margin: 5,
+    margin: 2,
     display: 'flex',
     alignItems: 'flex-start',
     flexDirection: 'column',
     borderRadius: 10,
-    backgroundColor: '#ffffff11',
+    backgroundColor: stylesData.leftMessage,
   },
   date: {
     display: 'flex',
@@ -221,20 +220,20 @@ const styles = StyleSheet.create({
   },
   dateText: {
     marginHorizontal: 5,
-    color: '#ffffff40',
+    color: stylesData.darkGray,
     fontSize: 13,
   },
   spacing: {
-
+    margin: 5,
   },
   line: {
     flex: 1,
     borderTopWidth: 1,
-    borderTopColor: '#ffffff1a',
+    borderTopColor: stylesData.darkGray,
   },
   timeSent: {
     fontSize: 13,
-    color: '#ffffff50',
+    color: stylesData.gray,
     position: 'relative',
   },
   viewMessages: {
@@ -253,7 +252,7 @@ const styles = StyleSheet.create({
     padding: 5,
     fontSize: 13,
     borderRadius: 10,
-    color: '#ffffff',
-    backgroundColor: "#1e2027",
+    color: stylesData.white,
+    backgroundColor: stylesData.accent1,
   },
 })

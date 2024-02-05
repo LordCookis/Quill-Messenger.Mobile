@@ -12,6 +12,7 @@ import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import { warningHook } from '../../lib/warning/warning-context'
 import { calculateDate } from '../../utils/calculate-date'
+import { stylesData } from '../../styles/stylesData'
 
 export default function Dialog({chat, messagesStore, navigation}:any){
   const [opponentData, setOpponentData] = useState<any>()
@@ -81,14 +82,14 @@ export default function Dialog({chat, messagesStore, navigation}:any){
 
 const styles = StyleSheet.create({
   messageBlock: {
-    width: Dimensions.get('window').width / 1.125,
+    width: stylesData.width / 1.1,
     paddingVertical: 10,
     marginVertical: 10,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e297ff10',
+    backgroundColor: stylesData.accent1,
     borderRadius: 10,
   },
   messageContent: {
@@ -102,10 +103,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   name: {
-    color: '#ffffff'
+    color: stylesData.white,
   },
   time: {
-    color: '#808080'
+    color: stylesData.time,
   },
   bottom: {
     display: 'flex',
@@ -113,19 +114,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   message: {
-    color: '#808080',
+    color: stylesData.time,
   },
   sentFromMe: {
-    color: '#c577e4',
+    color: stylesData.appmessage,
   },
   typing: {
-    color: '#c577e4',
+    color: stylesData.appmessage,
     position: 'absolute',
     display: 'flex',
     alignItems: 'center',
     marginRight: 4,
   },
   draft: {
-    color: '#e73f3f',
+    color: stylesData.error,
   }
 })

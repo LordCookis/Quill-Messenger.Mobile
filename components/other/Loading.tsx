@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { StyleSheet, View, Text, Dimensions} from "react-native"
 import Icon from "../../assets/Icons"
+import { stylesData } from '../../styles/stylesData'
 
 export default function Loading(){
   return(
@@ -13,12 +14,12 @@ export default function Loading(){
 
 const styles = StyleSheet.create({
   loading: {
-    height: Dimensions.get('screen').height,
-    width: Dimensions.get('screen').width,
+    height: stylesData.height,
+    width: stylesData.width,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#18191e',
+    backgroundColor: stylesData.accent2,
   },
   loadingIco: {
     display: 'flex',
@@ -26,6 +27,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#ffffff',
+    color: stylesData.white,
   },
 })

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, TextInput, Pressable, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, TextInput } from 'react-native'
 import { useContext, useEffect, useState } from "react"
 import Icon from "../../assets/Icons"
 import { loginAPI, registerAPI } from "../../api/user-api"
@@ -11,6 +11,7 @@ import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import { warningHook } from '../../lib/warning/warning-context'
 import { userData } from '../../types/types'
+import { stylesData } from '../../styles/stylesData'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState<boolean>(false)
@@ -73,7 +74,7 @@ export default function Login({navigation}:any) {
         <TextInput
           onChangeText={(e) => setRawInput(e)}
           value={userInputs.usertag}
-          style={[styles.loginInput, {backgroundColor: inputFocus === 1 ? '#c577e450' : '#7d4ba746'}]}
+          style={[styles.loginInput, {backgroundColor: inputFocus === 1 ? stylesData.messageInputHover : stylesData.loginInput}]}
           placeholder='User Tag'
           placeholderTextColor={'#cccccc'}
           onFocus={()=>handleFocus(1)}
@@ -81,7 +82,7 @@ export default function Login({navigation}:any) {
         <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, password: inputFilter(e)})}
           value={userInputs.password}
-          style={[styles.loginInput, {backgroundColor: inputFocus === 2 ? '#c577e450' : '#7d4ba746'}]}
+          style={[styles.loginInput, {backgroundColor: inputFocus === 2 ? stylesData.messageInputHover : stylesData.loginInput}]}
           placeholder='Password'
           placeholderTextColor={'#cccccc'}
           secureTextEntry={true}
@@ -90,18 +91,18 @@ export default function Login({navigation}:any) {
         {!tab || <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, confirmPassword: inputFilter(e)})}
           value={userInputs.confirmPassword}
-          style={[styles.loginInput, {backgroundColor: inputFocus === 3 ? '#c577e450' : '#7d4ba746'}]}
+          style={[styles.loginInput, {backgroundColor: inputFocus === 3 ? stylesData.messageInputHover : stylesData.loginInput}]}
           placeholder='Confirm password'
           placeholderTextColor={'#cccccc'}
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
         />}
-        <Pressable><Text
+        <Text
           onPress={tab ? registerNewAccount : loginAccount}
           style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}
           disabled={!userInputs.usertag || !userInputs.password.length}
-        >{tab ? "Register" : "Login"}</Text></Pressable>
-        <Pressable><Text onPress={()=>setTab(!tab)} style={styles.tabButton}>{!tab ? "I don't have an account!" : "I have an account!"}</Text></Pressable>
+        >{tab ? "Register" : "Login"}</Text>
+        <Text onPress={()=>setTab(!tab)} style={styles.tabButton}>{!tab ? "I don't have an account!" : "I have an account!"}</Text>
       </View>
       {!tab || <View>
         {userInputs.usertag.length < 3 ? <Text style={styles.warningLabels}>* Usertag must be longer than 3 characters!</Text> : <></>}
@@ -121,14 +122,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#18191e',
+    backgroundColor: stylesData.accent2,
     fontFamily: 'monospace',
-    color: '#fff',
+    color: stylesData.white,
     fontSize: 15,
   },
   loginView: {
+    width: stylesData.width * 0.85,
     marginVertical: 15,
-    width: Dimensions.get('window').width * 0.85,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -141,19 +142,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginTitle: {
-    color: '#c577e4',
+    color: stylesData.appmessage,
     fontFamily: 'monospace',
     fontSize: 25,
   },
   tabButton: {
     margin: 10,
-    color: '#c577e4',
+    color: stylesData.appmessage,
     fontFamily: 'monospace',
     fontSize: 15,
   },
   loginContent: {
     padding: 5,
-    backgroundColor: '#1d2027',
+    backgroundColor: stylesData.accent1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -166,39 +167,39 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontFamily: 'monospace',
     textAlign: 'center',
-    color: '#ffffff',
+    color: stylesData.white,
     fontSize: 15,
   },
   loginButton: {
     width: 280,
     padding: 10,
     margin: 5,
-    backgroundColor: '#302e39',
+    backgroundColor: stylesData.messageInputHover,
     borderRadius: 10,
     fontFamily: 'monospace',
     textAlign: 'center',
-    color: '#cccccc',
+    color: stylesData.white,
     fontSize: 15,
   },
   activeButton: {
     width: 280,
     padding: 10,
     margin: 5,
-    backgroundColor: '#7d4ba746',
+    backgroundColor: stylesData.loginInput,
     borderRadius: 10,
     fontFamily: 'monospace',
     textAlign: 'center',
-    color: '#cccccc',
+    color: stylesData.gray,
     fontSize: 15,
   },
   description: {
-    color: '#ffffff',
+    color: stylesData.white,
     fontSize: 15,
   },
   warningLabels: {
     maxWidth: 300,
     fontFamily: 'monospace',
     fontSize: 13,
-    color: 'coral'
+    color: stylesData.error,
   }
 })

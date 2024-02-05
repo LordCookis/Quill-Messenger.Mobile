@@ -1,9 +1,10 @@
 import { useState, useContext } from 'react'
-import { StyleSheet, View, Dimensions, Image, TextInput, Text, Pressable } from 'react-native'
+import { StyleSheet, View, Image, TextInput, Text, Pressable } from 'react-native'
 import { updateUserProfileAPI } from '../../api/user-api'
 import { setItem } from "../../lib/async-storage"
 import { useAccountStore } from '../../stores/account-store'
 import { WarningContext } from '../../lib/warning/warning-context'
+import { stylesData } from '../../styles/stylesData'
 
 export default function Account(){
   const user = useAccountStore()
@@ -44,7 +45,7 @@ export default function Account(){
           value={newData.displayedName}
           placeholder={user.usertag}
           onChangeText={(e)=>setNewData({...newData, displayedName: e})}
-          placeholderTextColor={'#ccc'}/>
+          placeholderTextColor={stylesData.gray}/>
         <TextInput
           style={styles.dataInput}
           value={newData.avatar}
@@ -55,15 +56,15 @@ export default function Account(){
         <TextInput
           style={styles.dataInput}
           placeholder='Введите старый пароль'
-          placeholderTextColor={'#cccccc'}/>
+          placeholderTextColor={stylesData.gray}/>
         <TextInput
           style={styles.dataInput}
           placeholder='Введите новый пароль'
-          placeholderTextColor={'#cccccc'}/>
+          placeholderTextColor={stylesData.gray}/>
         <TextInput
           style={styles.dataInput}
           placeholder='Подтвердите новый пароль'
-          placeholderTextColor={'#cccccc'}/>
+          placeholderTextColor={stylesData.gray}/>
         <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
       </View>
     </View>
@@ -72,10 +73,10 @@ export default function Account(){
 
 const styles = StyleSheet.create({
   account: {
-    height: Dimensions.get('window').height,
-    width: Dimensions.get('window').width,
+    height: stylesData.height,
+    width: stylesData.width,
     display: 'flex',
-    backgroundColor: '#18191e',
+    backgroundColor: stylesData.accent2,
     flexDirection: 'column',
     alignItems: 'center',
   },
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     padding: 2,
     borderWidth: 2,
     borderRadius: 50,
-    borderColor: '#8d70ff',
+    borderColor: stylesData.connected,
   },
   userImage: {
     height: 70,
@@ -100,11 +101,11 @@ const styles = StyleSheet.create({
   },
   displayedName: {
     fontSize: 25,
-    color: '#ffffff',
+    color: stylesData.white,
   },
   usertag: {
     fontSize: 20,
-    color: '#cccccc',
+    color: stylesData.gray,
   },
   dataInput: {
     width: 250,
@@ -113,18 +114,18 @@ const styles = StyleSheet.create({
     padding: 5,
     fontSize: 15,
     borderRadius: 10,
-    color: '#ffffff',
-    backgroundColor: "#1e2027",
+    color: stylesData.white,
+    backgroundColor: stylesData.accent1,
   },
   saveButton: {
     margin: 10,
     padding: 10,
     alignItems: 'center',
     borderRadius: 10,
-    backgroundColor: "#57546150",
+    backgroundColor: stylesData.loginInput,
   },
   saveText: {
     fontSize: 15,
-    color: '#ffffff',
+    color: stylesData.white,
   },
 })

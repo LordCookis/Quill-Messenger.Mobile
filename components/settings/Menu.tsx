@@ -1,21 +1,22 @@
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { StyleSheet, View, Image, Dimensions, Pressable, Text } from 'react-native'
 import { logoutAPI } from "../../api/user-api"
 import { WarningContext } from "../../lib/warning/warning-context"
 import { useAccountStore } from "../../stores/account-store"
 import { useChatStore } from "../../stores/chat-store"
 import Icon from '../../assets/Icons'
-import Animated, { withSpring } from 'react-native-reanimated'
+import Animated, { withTiming, Easing } from 'react-native-reanimated'
+import { stylesData } from '../../styles/stylesData'
 
-export default function Menu({navigation, setTab, animWight}:any){
+export default function Menu({navigation, animWight}:any){
   const user:any = useAccountStore()
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
+  const [widgh, setWight] = useState()
 
-  const closeMenu = () => {
-    setTab(false)
-    animWight.value = withSpring(0)
-  }
+  useEffect(()=>{setWight(animWight)},[])
+
+  const closeMenu = () => {animWight.value = withTiming(animWight.value - stylesData.width, {duration: 250, easing: Easing.linear})}
 
   const logout = () => {
     logoutAPI()
@@ -25,7 +26,7 @@ export default function Menu({navigation, setTab, animWight}:any){
   }
 
   return(
-    <Animated.View style={[styles.menu, {width: animWight}]}>
+    <Animated.View style={[styles.menu, {width: widgh}]}>
       <View style={styles.panel}>
         <View style={styles.titleView}><Icon.Quill/><Text style={styles.titleText}>Quill Messenger</Text></View>
           <View style={styles.userData}>
@@ -53,42 +54,40 @@ export default function Menu({navigation, setTab, animWight}:any){
 
 const styles = StyleSheet.create({
   menu: {
+    paddingRight: 2,
     position: 'absolute',
     zIndex: 1,
-    height: Dimensions.get('window').height,
+    height: stylesData.height,
     flexDirection: 'row',
+    overflow: 'hidden',
   },
   panel: {
-    width: '80%',
-    backgroundColor: '#18191e',
-    borderRightWidth: 2,
-    borderColor: '#c577e4',
+    width: stylesData.width * 0.8,
+    backgroundColor: stylesData.accent1,
   },
   back: {
-    width: '20%',
-    backgroundColor: '#8d70ff00',
+    width: stylesData.width * 0.2,
   },
   titleView: {
     marginVertical: 15,
-    width: '100%',
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   titleText: {
-    color: '#ffffff',
+    color: stylesData.white,
     fontFamily: 'monospace',
     fontSize: 25,
   },
   buttons: {
-    width: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
   },
   userData: {
+    marginBottom: 10,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,17 +95,17 @@ const styles = StyleSheet.create({
   },
   displayedName: {
     fontSize: 25,
-    color: '#ffffff',
+    color: stylesData.white,
   },
   usertag: {
     fontSize: 20,
-    color: '#cccccc',
+    color: stylesData.gray,
   },
   button: {
     width: '90%',
     margin: 10,
     padding: 10,
-    backgroundColor: '#1e2027',
+    backgroundColor: stylesData.dialogHover,
     borderRadius: 10,
     display: 'flex',
     flexDirection: 'row',
@@ -114,14 +113,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   buttonText: {
-    color: '#ffffff',
+    color: stylesData.white,
   },
   linkUserImage: {
     marginRight: 10,
     padding: 2,
     borderWidth: 2,
     borderRadius: 50,
-    borderColor: '#8d70ff',
+    borderColor: stylesData.connected,
   },
   userImage: {
     height: 70,
