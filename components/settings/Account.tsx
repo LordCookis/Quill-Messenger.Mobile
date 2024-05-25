@@ -5,6 +5,8 @@ import { setItem } from "../../lib/async-storage"
 import { useAccountStore } from '../../stores/account-store'
 import { WarningContext } from '../../lib/warning/warning-context'
 import { stylesData } from '../../styles/stylesData'
+import DocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
+import RNFS from 'react-native-fs'
 
 export default function Account(){
   const user = useAccountStore()
@@ -15,6 +17,26 @@ export default function Account(){
     avatar: user.avatar,
     displayedName: user.displayedName
   })
+  const [image, setImage] = useState(user.avatar || {format: null, code: null})
+
+  const pickAvatar = async() => {
+    try {
+      const res = await DocumentPicker.pick({
+        type: ["image/*"],
+      })
+      if (res.length > 0) {
+        const uri:any = res[0].uri
+        const base64 = await RNFS.readFile(uri, 'base64')
+        const format = uri.split('.').pop()?.toLowerCase()
+        setImage({format: format, code: base64})
+        setNewData({...newData, avatar: {format: format, code: base64}})
+      }
+    } catch (err:any) {
+      if (DocumentPicker.isCancel(err)) { console.log('Выбор файла отменен') }
+      else { console.log('Ошибка при выборе файла', err.message) }
+    }
+  }
+
 
   const update = async() => {
     const result = await updateUserProfileAPI({_id: user._id, ...newData})
@@ -30,9 +52,11 @@ export default function Account(){
     <View style={styles.account}>
       <View style={styles.userData}>
         <View style={styles.linkUserImage}>
-          {user.avatar ? <Image
+          <Pressable onPress={()=>pickAvatar()}>
+          {image.format ? <Image
           style={styles.userImage}
-          source={{uri:user.avatar}}/> : <></>}
+          source={{uri:`data:image/${image.format};base64,${image.code}`}}/> : <></>}
+          </Pressable>
         </View>
         <View>
           <Text style={styles.displayedName}>{user.displayedName}</Text>
@@ -46,10 +70,6 @@ export default function Account(){
           placeholder={user.usertag}
           onChangeText={(e)=>setNewData({...newData, displayedName: e})}
           placeholderTextColor={stylesData.gray}/>
-        <TextInput
-          style={styles.dataInput}
-          value={newData.avatar}
-          onChangeText={(e)=>setNewData({...newData, avatar: e})}/>
         <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
       </View>
       <View>

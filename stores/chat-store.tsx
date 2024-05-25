@@ -17,7 +17,10 @@ export type chatArray = {
 }
 
 export type friend = {
-  avatar: string,
+  avatar: {
+    format: string,
+    code: string,
+  },
   displayedName: string,
   usertag: string,
   _id: string

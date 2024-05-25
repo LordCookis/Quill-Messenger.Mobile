@@ -37,9 +37,9 @@ const fetchLatestMessageAPI = async(chatID: string) => {
 }
 
 // sendMessage
-const sendMessageAPI = async(chatID: string, senderID: string, text: string) => {
+const sendMessageAPI = async(chatID: string, senderID: string, type: any, text: any) => {
   try{
-    const result = await axios.post(`${api_url}/message/send`, {chatID, senderID, text})
+    const result = await axios.post(`${api_url}/message/send`, {chatID, senderID, type, text})
     return({
       data: result.data,
       status: 200,

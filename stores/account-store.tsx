@@ -5,14 +5,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 type userData = {
   _id: string,
   usertag: string,
-  avatar: string,
+  avatar: {
+    format: string,
+    code: string,
+  },
+  format: string,
   displayedName: string,
 }
 
 interface AccoutStore {
   _id: string,
   usertag: string,
-  avatar: string,
+  avatar: {
+    format: string,
+    code: string,
+  },
   displayedName: string,
   setUser: (data: userData) => void,
   clearAccountStore: () => void
@@ -20,19 +27,26 @@ interface AccoutStore {
 
 export const useAccountStore = create<AccoutStore>()(persist((set) => ({
   _id: "",
-  avatar: "",
+  avatar: {
+    format: "",
+    code: "",
+  },
   usertag: "",
   displayedName: "",
   setUser: (userdata: userData) => set(() => ({
     _id: userdata._id,
     usertag: userdata.usertag,
     avatar: userdata.avatar,
+    format: userdata.format,
     displayedName: userdata.displayedName,
   })),
   clearAccountStore: () => set(()=>({
     _id: "",
     usertag: "",
-    avatar: "",
+    avatar: {
+      format: "",
+      code: "",
+    },
     displayedName: "",
   }))
 }),{

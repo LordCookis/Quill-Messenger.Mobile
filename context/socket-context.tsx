@@ -57,7 +57,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
       setSocket({...socket, connected: false})
     })
     return () => {
-      //newSocket.disconnect()
+      if(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name === 'Login') { newSocket.disconnect() }
       newSocket.removeAllListeners()
     }
   }, [])

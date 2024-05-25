@@ -31,9 +31,9 @@ export default function Menu({navigation, animWight}:any){
         <View style={styles.titleView}><Icon.Quill/><Text style={styles.titleText}>Quill Messenger</Text></View>
           <View style={styles.userData}>
             <View style={styles.linkUserImage}>
-              {user.avatar ? <Image
+              {user.avatar.format ? <Image
               style={styles.userImage}
-              source={{uri:user.avatar}}/> : <></>}
+              source={{uri:`data:image/${user.avatar.format};base64,${user.avatar.code}`}}/> : <></>}
             </View>
             <View>
               <Text style={styles.displayedName}>{user.displayedName}</Text>

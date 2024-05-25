@@ -40,12 +40,10 @@ export default function DialogList({navigation}:any){
     tryCatch(async()=>{
       const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id), warning)
       let newObj: any = {}
-      console.log(result.data)
       result.data?.chats?.map(async (chat: chat) => {
         newObj[chat._id] = {...chat, isTyping: false, lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length-1]?.createdAt, inputMessage: ""}
       })
       chatStore.setUserChats(newObj)
-      console.log(newObj)
     }) :
     tryCatch(async()=>{
       const result = await netRequestHandler(()=>fetchUserGroupsAPI(user._id), warning)

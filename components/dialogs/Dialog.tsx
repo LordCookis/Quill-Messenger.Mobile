@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
+import { View, Image, Text, StyleSheet, Pressable } from 'react-native'
 import { useEffect, useState, useContext } from 'react'
 import Icon from '../../assets/Icons'
 import { fetchUserByIdAPI } from '../../api/user-api'
@@ -41,7 +41,6 @@ export default function Dialog({chat, messagesStore, navigation}:any){
   }, [opponentData, socket?.connected])
 
   useEffect(()=>{
-    console.log(messageData.time)
     if(!messagesStore?.messages?.length){return}
     setMessageData({
       senderID: messagesStore?.messages[messagesStore?.messages.length-1].senderID,
@@ -58,7 +57,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
   return(
     <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
-    {opponentData?.avatar ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: opponentData?.avatar}}/> : <></>}
+    {opponentData?.avatar.format ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:`data:image/${opponentData?.avatar.format};base64,${opponentData?.avatar.code}`}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{opponentData?.displayedName}</Text>

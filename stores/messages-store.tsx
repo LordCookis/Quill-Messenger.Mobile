@@ -4,7 +4,8 @@ export type message = {
   _id: string,
   chatID: string,
   senderID: string,
-  text: string,
+  type: string,
+  text: string | { format: string; code: string },
   createdAt: string,
   updatedAt: string,
   __v: 0

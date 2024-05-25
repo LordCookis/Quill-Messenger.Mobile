@@ -24,6 +24,7 @@ export default function Login({navigation}:any) {
   })
   const [inputFocus, setInputFocus] = useState<number>(0)
   const [rawInput, setRawInput] = useState<string>('')
+  const user = useAccountStore()
 
   useEffect(() => {
     setUserInputs({...userInputs, usertag: inputFilter(rawInput)})
@@ -32,14 +33,10 @@ export default function Login({navigation}:any) {
   const passLoginScreen = (userdata:userData) => {
     setItem('userdata', userdata)
     setUser(userdata)
-    navigation.navigate('DialogList', {user: userdata})
+    navigation.navigate('DialogList')
   }
 
-  useEffect(()=>{
-    const userdata:any = getItem('userdata')
-    if(!userdata._A){ return }
-    passLoginScreen(userdata)
-  }, [])
+  useEffect(()=>{if(user.usertag){ navigation.navigate('DialogList') }}, [])
 
   const registerNewAccount = async() => {
     tryCatch(async()=>{
