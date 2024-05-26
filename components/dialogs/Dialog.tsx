@@ -14,17 +14,25 @@ import { warningHook } from '../../lib/warning/warning-context'
 import { calculateDate } from '../../utils/calculate-date'
 import { stylesData } from '../../styles/stylesData'
 
+type MessageData = {
+  senderID: string
+  type: string
+  text: string | { format?: string; code?: string; text?: string }
+  time: string
+}
+
 export default function Dialog({chat, messagesStore, navigation}:any){
   const [opponentData, setOpponentData] = useState<any>()
   const {activeChat, setActiveChat} = useChatStore()
   const socket: Socket | any = useContext(SocketContext)
   const user = useAccountStore()
   const warning = useContext<warningHook>(WarningContext)
-  const [messageData, setMessageData] = useState({
+  const [messageData, setMessageData] = useState<MessageData>({
     senderID: "",
+    type: "",
     text: "",
     time: "",
-  })
+  });
 
   const selectChat = () => {
     setActiveChat({chat: chat, friend: opponentData})
@@ -44,6 +52,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
     if(!messagesStore?.messages?.length){return}
     setMessageData({
       senderID: messagesStore?.messages[messagesStore?.messages.length-1].senderID,
+      type: messagesStore?.messages[messagesStore?.messages.length-1].type,
       text: messagesStore?.messages[messagesStore?.messages.length-1].text,
       time: `${calculateDate(messagesStore?.messages[messagesStore?.messages.length-1].createdAt, 'count')}`
     })
@@ -51,8 +60,19 @@ export default function Dialog({chat, messagesStore, navigation}:any){
 
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
   const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
-  const Message = () => <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
-  {messageData?.text?.length ? messageData.text : "No messages yet..."}</>
+  const Message = () => {
+    const renderMessage = () => {
+      const truncateText = (text:string) => { return text.length > 25 ? text.substring(0, 25) + '...' : text }
+      if (messageData?.type === 'text' && typeof messageData.text === 'string') { return messageData.text.length ? truncateText(messageData.text) : "No messages yet..."  }
+      if (messageData?.type === 'media') { return "File" }
+      if (messageData?.type === 'media-text' && typeof messageData.text === 'object' && messageData.text.text) { return messageData.text.text.length ? truncateText(messageData.text.text) : "No messages yet..." }
+      return "No messages yet..."
+    }
+    return(
+      <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
+      <Text>{renderMessage()}</Text></>
+    )
+  }
 
   return(
     <Pressable onPress={selectChat}>

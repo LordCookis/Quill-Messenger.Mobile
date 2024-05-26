@@ -20,7 +20,7 @@ const fetchUserGroupsAPI = async(_id:string) => {
 }
 
 //createGroup
-const createNewGroupAPI = async(name:string, image:string, usersID:any) => {
+const createNewGroupAPI = async(name:string, image:any, usersID:any) => {
   try{
     const result = await axios.post(`${api_url}/group/create`, {name, image, usersID})
     return({

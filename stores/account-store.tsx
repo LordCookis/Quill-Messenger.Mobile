@@ -9,7 +9,6 @@ type userData = {
     format: string,
     code: string,
   },
-  format: string,
   displayedName: string,
 }
 
@@ -21,8 +20,10 @@ interface AccoutStore {
     code: string,
   },
   displayedName: string,
+  connect: number,
   setUser: (data: userData) => void,
-  clearAccountStore: () => void
+  clearAccountStore: () => void,
+  setConnect: (info: number) => void,
 }
 
 export const useAccountStore = create<AccoutStore>()(persist((set) => ({
@@ -33,11 +34,11 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
   },
   usertag: "",
   displayedName: "",
+  connect: 0,
   setUser: (userdata: userData) => set(() => ({
     _id: userdata._id,
     usertag: userdata.usertag,
     avatar: userdata.avatar,
-    format: userdata.format,
     displayedName: userdata.displayedName,
   })),
   clearAccountStore: () => set(()=>({
@@ -48,7 +49,8 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
       code: "",
     },
     displayedName: "",
-  }))
+  })),
+  setConnect: (info: number) => set(()=>({connect: info})),
 }),{
   name: "userAccount",
   storage: createJSONStorage(() => AsyncStorage),

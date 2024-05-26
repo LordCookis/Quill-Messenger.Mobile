@@ -18,10 +18,10 @@ import { SocketContext } from '../../context/socket-context'
 import { Socket } from 'socket.io-client'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
-import { useSharedValue, withTiming, Easing } from 'react-native-reanimated'
+import Animated, { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated'
 import { stylesData } from '../../styles/stylesData'
 
-export default function DialogList({navigation}:any){
+export default function DialogList({ navigation }: any) {
   const chatStore = useChatStore()
   const {userGroups, setUserGroups}:any = useGroupStore()
   const messagesStore = useMessageStore()
@@ -32,79 +32,100 @@ export default function DialogList({navigation}:any){
   const user = useAccountStore()
   const [find, setFind] = useState<boolean>(false)
   const [focus, setFocus] = useState<boolean>(false)
-  const animWight = useSharedValue(0)
-
-  useEffect(()=>{
-    if(!socket?.connected){return}
-    !focus ?
-    tryCatch(async()=>{
-      const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id), warning)
-      let newObj: any = {}
-      result.data?.chats?.map(async (chat: chat) => {
-        newObj[chat._id] = {...chat, isTyping: false, lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length-1]?.createdAt, inputMessage: ""}
-      })
-      chatStore.setUserChats(newObj)
-    }) :
-    tryCatch(async()=>{
-      const result = await netRequestHandler(()=>fetchUserGroupsAPI(user._id), warning)
-      setUserGroups(result.data.groups)
-    })
-  }, [socket?.connected])
+  const animTranslateX = useSharedValue(-stylesData.width)
 
   useEffect(() => {
-    setSearch(inputFilter(rawInput))
-  }, [rawInput])
-
-  const createNewChat = async() => {
-    if(search == user.usertag){return}
-    tryCatch(async()=>{
-      const secondUser = await netRequestHandler(()=>fetchUserByTagAPI(search), warning)
-      const doesChatExist = Object.keys(chatStore.userChats).filter((chat: any) => {
-        if(chatStore.userChats[chat].members[0] == secondUser.data._id || chatStore.userChats[chat].members[0] == secondUser.data._id){ return true }
+    user.setConnect(2)
+    if (!socket?.connected) { return }
+    if (!focus) {
+      tryCatch(async () => {
+        const result = await netRequestHandler(() => fetchUserChatsAPI(user._id), warning)
+        let newObj: any = {}
+        result.data?.chats?.map((chat: chat) => {
+          newObj[chat._id] = {
+            ...chat,
+            isTyping: false,
+            lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length - 1]?.createdAt,
+            inputMessage: ""
+          }
+        })
+        chatStore.setUserChats(newObj)
       })
-      if(doesChatExist.length){return}
-      const newChat = await netRequestHandler(()=>createNewChatAPI(user._id, secondUser.data._id), warning)
+    } else {
+      tryCatch(async () => {
+        const result = await netRequestHandler(() => fetchUserGroupsAPI(user._id), warning)
+        let newObj: any = {}
+        result.data?.groups?.map((group: any) => {
+          newObj[group._id] = {
+            ...group,
+            isTyping: false,
+            lastMessage: messagesStore.messagesHistory[group._id]?.messages[messagesStore.messagesHistory[group._id]?.messages.length - 1]?.createdAt,
+            inputMessage: ""
+          }
+        })
+        chatStore.setUserGroups(newObj)
+      })
+    }
+  }, [socket?.connected])
+
+  useEffect(() => { setSearch(inputFilter(rawInput)) }, [rawInput])
+
+  const createNewChat = async () => {
+    if (search == user.usertag) { return }
+    tryCatch(async () => {
+      const secondUser = await netRequestHandler(() => fetchUserByTagAPI(search), warning);
+      const doesChatExist = Object.keys(chatStore.userChats).filter((chat: any) => {
+        if (chatStore.userChats[chat].members[0] == secondUser.data._id || chatStore.userChats[chat].members[1] == secondUser.data._id) { return true }
+      })
+      if (doesChatExist.length) { return }
+      const newChat = await netRequestHandler(() => createNewChatAPI(user._id, secondUser.data._id), warning)
       chatStore.addNewChat(newChat.data)
     })
   }
 
-  const openMenu = () => {animWight.value = withTiming(animWight.value + stylesData.width, {duration: 250, easing: Easing.linear})}
+  const openMenu = () => { animTranslateX.value = withTiming(0, { duration: 150, easing: Easing.linear }) }
 
-  return(
+  const closeMenu = () => { animTranslateX.value = withTiming(-stylesData.width, { duration: 150, easing: Easing.linear }) }
+
+  const animatedStyle = useAnimatedStyle(() => { return { transform: [{ translateX: animTranslateX.value }] } })
+
+  return (
     <>
-    <Menu navigation={navigation} animWight={animWight}/>
+    <Animated.View style={[styles.menu, animatedStyle]}>
+      <Menu navigation={navigation} closeMenu={closeMenu}/>
+    </Animated.View>
     <View style={styles.chatlist}>
       <View style={styles.searchBlock}>
         <Pressable onPress={openMenu}>
-          <Icon.AddUser/>
+          <Icon.Menu/>
         </Pressable>
-        {find ? 
-        <TextInput
-          style={styles.searchInput}
-          value={search}
-          onChangeText={(e)=>setRawInput(e)}
-          placeholder="Search by tag"
-          placeholderTextColor={stylesData.gray}
-        /> : 
-        <Pressable onPress={()=>setFind(true)}><Text style={styles.chatHeader}>Messages</Text></Pressable>}
+        {find ?
+          <TextInput
+            style={styles.searchInput}
+            value={search}
+            onChangeText={(e) => setRawInput(e)}
+            placeholder="Search by tag"
+            placeholderTextColor={stylesData.gray}
+          /> :
+          <Pressable onPress={() => setFind(true)}><Text style={styles.chatHeader}>Messages</Text></Pressable>}
         <Pressable onPress={createNewChat}>
-          <Icon.AddUser/>
+          <Icon.AddUser />
         </Pressable>
       </View>
       <View style={styles.block}>
-        <Text style={styles.legend}><Icon.Letter/> ALL MESSAGES</Text>
+        <Text style={styles.legend}><Icon.Letter /> ALL MESSAGES</Text>
         <View style={styles.type}>
-          <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(false)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
-          <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={()=>setFocus(true)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
+          <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={() => setFocus(false)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
+          <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={() => setFocus(true)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
         </View>
         <ScrollView>
-        {!focus ?
-          Object.keys(chatStore.userChats)?.map((keyname: string) => (
-            <Dialog key={chatStore.userChats[keyname]._id} chat={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/>
-          )) :
-          userGroups?.map((group:any) => (
-            <Group key={group._id} group={group} messagesStore={messagesStore.messagesHistory[group._id]} navigation={navigation}/>
-          ))}
+          {!focus ?
+            Object.keys(chatStore.userChats)?.map((keyname: string) => (
+              <Dialog key={chatStore.userChats[keyname]._id} chat={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/>
+            )) :
+            Object.keys(chatStore.userGroups)?.map((keyname: string) => (
+              <Group key={chatStore.userGroups[keyname]._id} group={chatStore.userGroups[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userGroups[keyname]._id]} navigation={navigation}/>
+            ))}
         </ScrollView>
       </View>
     </View>
@@ -119,7 +140,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 0,
     display: 'flex',
-    flexDirection:  'column',
+    flexDirection: 'column',
     alignItems: 'center',
     backgroundColor: stylesData.accent2,
   },
@@ -180,5 +201,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: stylesData.white,
     fontFamily: 'monospace',
+  },
+  menu: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: stylesData.width,
+    backgroundColor: 'rgba(0, 0, 0, 0)',
+    zIndex: 1,
   },
 })

@@ -190,6 +190,19 @@ const Paperclip = (props:IconProps & {color:string})=> {
   )
 }
 
+const Menu = (props:IconProps)=> {
+  const {color, ...SvgProps} = props
+  return(
+    <Svg viewBox="0 0 24 24" height={24} width={24} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <G id="SVGRepo_bgCarrier" stroke-width="0"></G>
+      <G id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></G>
+      <G id="SVGRepo_iconCarrier">
+        <Path d="M4 6H20M4 12H20M4 18H20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></Path>
+      </G>
+    </Svg>
+  )
+}
+
 // strokeWidth
 // strokeLinecap
 // strokeLinejoin
@@ -201,7 +214,7 @@ const Icon = {
   Letter, DoubleCheck, AddUser, SendArrow,
   Loading, AnimatedPen, AudioCall, VideoCall,
   MessageTriangleRight, MessageTriangleLeft,
-  Paperclip
+  Paperclip, Menu
 }
 
 export default Icon

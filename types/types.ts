@@ -1,8 +1,11 @@
 export type userData = {
-  avatar: string,
-  displayedName: string,
+  _id: string,
   usertag: string,
-  _id: string
+  avatar: {
+    format: string,
+    code: string,
+  },
+  displayedName: string,
 }
 
 export type chat = {

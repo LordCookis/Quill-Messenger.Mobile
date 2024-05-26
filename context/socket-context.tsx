@@ -10,26 +10,25 @@ import { message } from '../stores/messages-store'
 import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
 import { WarningContext, warningHook } from '../lib/warning/warning-context'
+import { useAccountStore } from '../stores/account-store'
 
 export const SocketContext: any = createContext(null)
 
 export default function SocketWrapper({children, _id}: {children: React.ReactNode, _id: string}){
   const chatStore = useChatStore()
   const warning = useContext<warningHook>(WarningContext)
+  const user = useAccountStore()
   const messagesStore = useMessageStore()
   const [socket, setSocket] = useState<Socket | null | any>()
   const navigation = useNavigation()
   const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('state', () => {
-      setRoute(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
-    })
+    const unsubscribe = navigation.addListener('state', () => { setRoute(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name) })
     return unsubscribe
   }, [navigation])
 
   useEffect(()=>{
-    //if(route == 'Login'){return}
     const newSocket = io(`ws://192.168.1.194:4000/?_id=${_id}`, {
       reconnection: true,
       reconnectionDelay: 2000,
@@ -56,11 +55,11 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
       newSocket["connected"] = false
       setSocket({...socket, connected: false})
     })
-    return () => {
-      if(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name === 'Login') { newSocket.disconnect() }
+    return() => {
+      newSocket.disconnect()
       newSocket.removeAllListeners()
     }
-  }, [])
+  }, [user.connect])
 
   useEffect(()=>{
     if(!socket?.connected){return}

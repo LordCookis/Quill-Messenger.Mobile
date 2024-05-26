@@ -12,11 +12,11 @@ import { netRequestHandler } from '../../utils/net-request-handler'
 import { warningHook } from '../../lib/warning/warning-context'
 import { userData } from '../../types/types'
 import { stylesData } from '../../styles/stylesData'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState<boolean>(false)
   const warning = useContext<warningHook>(WarningContext)
-  const {setUser} = useAccountStore()
   const [userInputs, setUserInputs] = useState({
     usertag: "",
     password: "",
@@ -31,12 +31,10 @@ export default function Login({navigation}:any) {
   }, [rawInput])
 
   const passLoginScreen = (userdata:userData) => {
-    setItem('userdata', userdata)
-    setUser(userdata)
+    setItem('userAccount', userdata)
+    user.setUser(userdata)
     navigation.navigate('DialogList')
   }
-
-  useEffect(()=>{if(user.usertag){ navigation.navigate('DialogList') }}, [])
 
   const registerNewAccount = async() => {
     tryCatch(async()=>{
@@ -69,7 +67,7 @@ export default function Login({navigation}:any) {
           </Text>
         </View>
         <TextInput
-          onChangeText={(e) => setRawInput(e)}
+          onChangeText={(e)=>setRawInput(e)}
           value={userInputs.usertag}
           style={[styles.loginInput, {backgroundColor: inputFocus === 1 ? stylesData.messageInputHover : stylesData.loginInput}]}
           placeholder='User Tag'

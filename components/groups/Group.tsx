@@ -10,43 +10,51 @@ import { SocketContext } from '../../context/socket-context'
 import { WarningContext } from '../../lib/warning/warning-context'
 import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
+import { useChatStore } from '../../stores/chat-store'
+import { warningHook } from '../../lib/warning/warning-context'
+import { stylesData } from '../../styles/stylesData'
 
-export default function Group({group, groupStore, navigation}:any){
-  const {setActiveGroup, activeGroup}:any = useGroupStore()
+type MessageData = {
+  senderID: string
+  type: string
+  text: string | { format?: string; code?: string; text?: string }
+  time: string
+}
+
+export default function Group({group, messagesStore, navigation}:any){
+  const {activeChat, setActiveChat} = useChatStore()
   const socket: Socket | any = useContext(SocketContext)
   const user = useAccountStore()
-  const warning: any = useContext(WarningContext)
-  const [messageData, setMessageData] = useState({
+  const warning = useContext<warningHook>(WarningContext)
+  const [messageData, setMessageData] = useState<MessageData>({
     senderID: "",
+    type: "",
     text: "",
     time: "",
-  })
+  });
 
-  useEffect(()=>{console.log(group)},[])
-  
-  const selectGroup = () => {
-    //navigation.navigate('GroupBox', {groupID: group._id})
-  }
-
-  useEffect(()=>{
-    if(!groupStore?.messages?.length){return}
-    const timeDate = new Date(groupStore?.messages[groupStore?.messages.length-1].createdAt)
-    setMessageData({
-      senderID: groupStore?.messages[groupStore?.messages.length-1].senderID,
-      text: groupStore?.messages[groupStore?.messages.length-1].text,
-      time: `${timeDate.getHours()}:${timeDate.getMinutes() < 10 ? "0" + timeDate.getMinutes() : timeDate.getMinutes()}`
-    })
-  }, [groupStore])
+  const selectGroup = () => {}
 
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
-  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{groupStore?.inputMessage}</>
-  const Message = () => <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
-  {messageData?.text?.length ? messageData.text : "No messages yet..."}</>
+  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
+  const Message = () => {
+    const renderMessage = () => {
+      const truncateText = (text:string) => { return text.length > 25 ? text.substring(0, 25) + '...' : text }
+      if (messageData?.type === 'text' && typeof messageData.text === 'string') { return messageData.text.length ? truncateText(messageData.text) : "No messages yet..."  }
+      if (messageData?.type === 'media') { return "File" }
+      if (messageData?.type === 'media-text' && typeof messageData.text === 'object' && messageData.text.text) { return messageData.text.text.length ? truncateText(messageData.text.text) : "No messages yet..." }
+      return "No messages yet..."
+    }
+    return(
+      <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
+      <Text>{renderMessage()}</Text></>
+    )
+  }
 
   return(
     <Pressable onPress={selectGroup}>
     <View style={styles.messageBlock}>
-      {group?.image ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri: group?.image}}/> : <></>}
+    {group?.image.format ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:`data:image/${group?.image.format};base64,${group?.image.code}`}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{group?.name}</Text>
@@ -54,14 +62,13 @@ export default function Group({group, groupStore, navigation}:any){
         </View>
         <View style={styles.bottom}>
           <Text style={styles.message}>
-            {groupStore?.isTyping ?
+            {group?.isTyping ?
               <Typing/> :
-              groupStore?.inputMessage.length && activeGroup.chat._id != group._id ?
+              group?.inputMessage?.length && activeChat.chat._id != group._id ?
                 <Draft/> :
                 <Message/>
             }
           </Text>
-          <Text style={styles.status}>0</Text>
         </View>
       </View>
     </View>
@@ -71,14 +78,14 @@ export default function Group({group, groupStore, navigation}:any){
 
 const styles = StyleSheet.create({
   messageBlock: {
-    width: Dimensions.get('window').width / 1.125,
+    width: stylesData.width / 1.1,
     paddingVertical: 10,
     marginVertical: 10,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1e2027',
+    backgroundColor: stylesData.accent1,
     borderRadius: 10,
   },
   messageContent: {

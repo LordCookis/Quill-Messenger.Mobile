@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export type chat = {
+export type chat_group = {
   _id: string,
   members: string[],
   createdAt: string,
@@ -12,8 +12,21 @@ export type chat = {
   lastMessage: string,
 }
 
+export type chat = chat_group & {}
+
+export type group = chat_group & {
+  image: {
+    format: string,
+    code: string,
+  },
+}
+
 export type chatArray = {
   [key: string]: chat
+}
+
+export type groupArray = {
+  [key: string]: group
 }
 
 export type friend = {
@@ -28,8 +41,10 @@ export type friend = {
 
 interface chatStore {
   userChats: chatArray,
+  userGroups: groupArray,
   activeChat: {chat: chat, friend: friend},
   setUserChats: (data: chatArray) => void,
+  setUserGroups: (data: groupArray) => void,
   addNewChat: (data: chat) => void,
   setChatMessageTime: (data: {chatID: string, time: string}) => void,
   setIsTyping: (data: {chatID: string, state: boolean}) => void,
@@ -40,8 +55,10 @@ interface chatStore {
 
 export const useChatStore = create<chatStore>()(persist((set) => ({
   userChats: {},
+  userGroups: {},
   activeChat: {},
   setUserChats: (data) => set((state: any) => ({ userChats: data })),
+  setUserGroups: (data) => set((state: any) => ({ userGroups: data })),
   addNewChat: (data) => set((state: any) => ({ userChats: {...state.userChats, [data._id]: {
     ...data,
     isTyping: false,

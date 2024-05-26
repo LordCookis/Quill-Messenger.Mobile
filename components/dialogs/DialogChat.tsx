@@ -142,11 +142,13 @@ export default function DialogChat({route}:any) {
                       <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{calculateDate(date.toString(), 'time')}</Text>
                     </View> :
                     message.type === 'media' ?
-                      <View style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]}>
+                      <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]} onPress={()=>setOpenImage({...message.text})}>
                         <Image source={{uri: `data:image/${(message.text as {format: string; code: string}).format};base64,${(message.text as {format:string; code:string}).code}`}} style={styles.messageImage}/>
-                      </View> :
+                      </Pressable> :
                       <View style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]}>
-                        <Image source={{uri: `data:image/${(message.text as {format:string; code:string; text:string}).format};base64,${(message.text as {format:string; code:string; text:string}).code}`}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}} />
+                        <Pressable onPress={()=>setOpenImage({...message.text})}>
+                          <Image source={{uri: `data:image/${(message.text as {format:string; code:string; text:string}).format};base64,${(message.text as {format:string; code:string; text:string}).code}`}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}/>
+                        </Pressable>
                         <View style={{padding: 5}}>
                           <Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'left', width: (stylesData.width * 0.5) - 10}]}>{(message.text as {format:string; code:string; text:string}).text}</Text>
                           <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{calculateDate(date.toString(), 'time')}</Text>
@@ -189,6 +191,17 @@ export default function DialogChat({route}:any) {
               </View>
             </View>
           </Pressable>
+        </Modal>}
+      {openImage.format &&
+        <Modal
+        animationType="fade"
+        transparent={true}
+        visible={true}>
+        <Pressable style={styles.modal} onPress={()=>setOpenImage({format: '', code: ''})}>
+          <View style={styles.conteiner}>
+          <Image source={{uri:`data:image/${openImage.format};base64,${openImage.code}`}} style={styles.image}/>
+          </View>
+        </Pressable>
         </Modal>}
     </SafeAreaView>
   )

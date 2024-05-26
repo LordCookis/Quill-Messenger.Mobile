@@ -8,15 +8,11 @@ import Icon from '../../assets/Icons'
 import Animated, { withTiming, Easing } from 'react-native-reanimated'
 import { stylesData } from '../../styles/stylesData'
 
-export default function Menu({navigation, animWight}:any){
+export default function Menu({navigation, closeMenu}:any){
   const user:any = useAccountStore()
   const chat:any = useChatStore()
   const warning:any = useContext(WarningContext)
   const [widgh, setWight] = useState()
-
-  useEffect(()=>{setWight(animWight)},[])
-
-  const closeMenu = () => {animWight.value = withTiming(animWight.value - stylesData.width, {duration: 250, easing: Easing.linear})}
 
   const logout = () => {
     logoutAPI()
@@ -43,7 +39,7 @@ export default function Menu({navigation, animWight}:any){
         <View style={styles.buttons}>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Interface')}><Icon.Settings/><Text style={styles.buttonText}> Интрефейс</Text></Pressable>
-          {/*<Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>*/}
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>
           <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={{color: 'coral'}}> Выход</Text></Pressable>
         </View>
       </View>

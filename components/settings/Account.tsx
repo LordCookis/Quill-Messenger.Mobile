@@ -37,7 +37,6 @@ export default function Account(){
     }
   }
 
-
   const update = async() => {
     const result = await updateUserProfileAPI({_id: user._id, ...newData})
     if(result.status >= 400){
@@ -70,7 +69,7 @@ export default function Account(){
           placeholder={user.usertag}
           onChangeText={(e)=>setNewData({...newData, displayedName: e})}
           placeholderTextColor={stylesData.gray}/>
-        <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
+        <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Сохранить</Text></Pressable>
       </View>
       <View>
         <TextInput
@@ -85,7 +84,7 @@ export default function Account(){
           style={styles.dataInput}
           placeholder='Подтвердите новый пароль'
           placeholderTextColor={stylesData.gray}/>
-        <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Save changes</Text></Pressable>
+        <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Сохранить</Text></Pressable>
       </View>
     </View>
   )
@@ -93,15 +92,14 @@ export default function Account(){
 
 const styles = StyleSheet.create({
   account: {
-    height: stylesData.height,
-    width: stylesData.width,
-    display: 'flex',
+    flex: 1,
     backgroundColor: stylesData.accent2,
     flexDirection: 'column',
     alignItems: 'center',
   },
   userData: {
     margin: 15,
+    marginTop: 30,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -120,31 +118,35 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   displayedName: {
+    fontFamily: 'monospace',
     fontSize: 25,
     color: stylesData.white,
   },
   usertag: {
+    fontFamily: 'monospace',
     fontSize: 20,
     color: stylesData.gray,
   },
   dataInput: {
-    width: 250,
+    width: 300,
     margin: 5,
-    marginLeft: 15,
-    padding: 5,
+    padding: 10,
+    fontFamily: 'monospace',
     fontSize: 15,
     borderRadius: 10,
     color: stylesData.white,
     backgroundColor: stylesData.accent1,
   },
   saveButton: {
-    margin: 10,
-    padding: 10,
+    width: 300,
+    margin: 5,
+    padding: 12,
     alignItems: 'center',
     borderRadius: 10,
     backgroundColor: stylesData.loginInput,
   },
   saveText: {
+    fontFamily: 'monospace',
     fontSize: 15,
     color: stylesData.white,
   },
