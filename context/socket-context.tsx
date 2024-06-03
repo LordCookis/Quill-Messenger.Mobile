@@ -29,7 +29,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   }, [navigation])
 
   useEffect(()=>{
-    const newSocket = io(`ws://192.168.1.194:4000/?_id=${_id}`, {
+    const newSocket = io(`ws://192.168.1.208:4000/?_id=${_id}`, {
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionAttempts: 100

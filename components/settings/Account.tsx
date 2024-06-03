@@ -1,12 +1,11 @@
 import { useState, useContext } from 'react'
-import { StyleSheet, View, Image, TextInput, Text, Pressable } from 'react-native'
+import { StyleSheet, View, Image, TextInput, Text, Pressable, Modal } from 'react-native'
 import { updateUserProfileAPI } from '../../api/user-api'
 import { setItem } from "../../lib/async-storage"
 import { useAccountStore } from '../../stores/account-store'
 import { WarningContext } from '../../lib/warning/warning-context'
 import { stylesData } from '../../styles/stylesData'
-import DocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
-import RNFS from 'react-native-fs'
+import ImagePicker from 'react-native-image-crop-picker'
 
 export default function Account(){
   const user = useAccountStore()
@@ -21,19 +20,21 @@ export default function Account(){
 
   const pickAvatar = async() => {
     try {
-      const res = await DocumentPicker.pick({
-        type: ["image/*"],
+      const image = await ImagePicker.openPicker({
+        cropping: true,
+        cropperCircleOverlay: true,
+        includeBase64: true,
+        compressImageQuality: 0.8,
+        mediaType: 'photo'
       })
-      if (res.length > 0) {
-        const uri:any = res[0].uri
-        const base64 = await RNFS.readFile(uri, 'base64')
-        const format = uri.split('.').pop()?.toLowerCase()
+      if (image) {
+        const format:any = image.mime.split('/')[1]
+        const base64:any = image.data
         setImage({format: format, code: base64})
         setNewData({...newData, avatar: {format: format, code: base64}})
       }
     } catch (err:any) {
-      if (DocumentPicker.isCancel(err)) { console.log('Выбор файла отменен') }
-      else { console.log('Ошибка при выборе файла', err.message) }
+      console.log('Ошибка при выборе файла', err.message)
     }
   }
 
@@ -52,9 +53,9 @@ export default function Account(){
       <View style={styles.userData}>
         <View style={styles.linkUserImage}>
           <Pressable onPress={()=>pickAvatar()}>
-          {image.format ? <Image
-          style={styles.userImage}
-          source={{uri:`data:image/${image.format};base64,${image.code}`}}/> : <></>}
+            {image.format ? <Image
+              style={styles.userImage}
+              source={{uri:`data:image/${image.format};base64,${image.code}`}}/> : <></>}
           </Pressable>
         </View>
         <View>

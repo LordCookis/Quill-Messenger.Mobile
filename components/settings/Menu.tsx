@@ -38,7 +38,6 @@ export default function Menu({navigation, closeMenu}:any){
           </View>
         <View style={styles.buttons}>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
-          <Pressable style={styles.button} onPress={()=>navigation.navigate('Interface')}><Icon.Settings/><Text style={styles.buttonText}> Интрефейс</Text></Pressable>
           <Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>
           <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={{color: 'coral'}}> Выход</Text></Pressable>
         </View>

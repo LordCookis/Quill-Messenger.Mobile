@@ -1,5 +1,5 @@
 import axios from "axios"
-const api_url = 'http://192.168.1.194:4000/api'
+const api_url = 'http://192.168.1.208:4000/api'
 
 //getGroups
 const fetchUserGroupsAPI = async(_id:string) => {

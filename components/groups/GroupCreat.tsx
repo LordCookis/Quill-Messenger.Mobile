@@ -13,8 +13,7 @@ import { netRequestHandler } from '../../utils/net-request-handler'
 import { tryCatch } from '../../utils/try-catch'
 import { createNewGroupAPI } from '../../api/group-api'
 import { stylesData } from '../../styles/stylesData'
-import DocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
-import RNFS from 'react-native-fs'
+import ImagePicker from 'react-native-image-crop-picker'
 
 export default function GroupCreat({navigation}:any) {
   const chatStore = useChatStore()
@@ -24,18 +23,17 @@ export default function GroupCreat({navigation}:any) {
   const [groupMembers, setGroupMembers] = useState<any>([user._id])
   const socket: Socket | any = useContext(SocketContext)
   const warning: any = useContext(WarningContext)
-  const [image, setImage] = useState({format: null, code: null})
+  const [image, setImage] = useState<any>({format: null, code: null})
 
   useEffect(() => {
     if (!socket?.connected) { return }
-    const fetchFriends = async() => {
-      const friends = await Promise.all(
-        Object.values(chatStore.userChats).map(async(item) => {
-          const friendID = item.members[0]
-          const result = await netRequestHandler(() => fetchUserByIdAPI(friendID), warning)
-          return result.data
-        })
-      )
+    const fetchFriends = async () => {
+      const members = Object.values(chatStore.userChats).map((item:any) => item.members)
+      const friendsID = members.map((members:any) => members.filter((member:any) => member !== user._id))
+      const friends = await Promise.all(friendsID.map(async (friend:any) => {
+        const result = await netRequestHandler(() => fetchUserByIdAPI(friend[0]), warning)
+        return result.data
+      }))
       setMembers(friends)
     }
     fetchFriends()
@@ -49,18 +47,19 @@ export default function GroupCreat({navigation}:any) {
 
   const pickAvatar = async() => {
     try {
-      const res = await DocumentPicker.pick({
-        type: ["image/*"],
+      const image = await ImagePicker.openPicker({
+        cropping: true,
+        cropperCircleOverlay: true,
+        includeBase64: true,
+        compressImageQuality: 0.8,
+        mediaType: 'photo'
       })
-      if (res.length > 0) {
-        const uri:any = res[0].uri
-        const base64:any = await RNFS.readFile(uri, 'base64')
-        const format = uri.split('.').pop()?.toLowerCase()
-        setImage({format: format, code: base64})
+      if (image) {
+        const file = `data:${image.mime};base64,${image.data}`
+        setImage({format: 'png', code: file})
       }
     } catch (err:any) {
-      if (DocumentPicker.isCancel(err)) { console.log('Выбор файла отменен') }
-      else { console.log('Ошибка при выборе файла', err.message) }
+      console.log('Ошибка при выборе файла', err.message)
     }
   }
 
@@ -77,10 +76,10 @@ export default function GroupCreat({navigation}:any) {
       {image.format ? 
       <Image
         style={styles.groupImage}
-        source={{uri:`data:image/${image.format};base64,${image.code}`}}/> : 
+        source={{uri:image.code}}/> : 
       <Pressable onPress={pickAvatar}><Image
         style={styles.groupImage}
-        source={{uri: 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}}/>
+        source={{uri:'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}}/>
       </Pressable>}
       <TextInput
         style={styles.input}
@@ -112,7 +111,7 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     display: 'flex',
     alignItems: 'center',
-    backgroundColor: '#18191e',
+    backgroundColor: stylesData.accent2,
   },
   groupImage: {
     height: 100,
@@ -139,7 +138,8 @@ const styles = StyleSheet.create({
     width: stylesData.width * 0.95,
     padding: 10,
     margin: 5,
-    backgroundColor: '#17191f',
+    backgroundColor: stylesData.accent2,
+    borderRadius: 10,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'flex-start',

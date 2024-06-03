@@ -80,6 +80,7 @@ export default function DialogList({ navigation }: any) {
       if (doesChatExist.length) { return }
       const newChat = await netRequestHandler(() => createNewChatAPI(user._id, secondUser.data._id), warning)
       chatStore.addNewChat(newChat.data)
+      setFind(false)
     })
   }
 

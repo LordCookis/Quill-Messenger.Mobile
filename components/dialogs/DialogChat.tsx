@@ -95,7 +95,7 @@ export default function DialogChat({route}:any) {
 
   const pickMedia = async() => {
     try {
-      const res = await DocumentPicker.pick({type: ["image/*"]})
+      const res = await DocumentPicker.pick({type: ["video/*"]})
       if (res.length > 0) {
         const uri:any = res[0].uri
         const base64 = await RNFS.readFile(uri, 'base64')

@@ -33,6 +33,11 @@ export default function Login({navigation}:any) {
   const passLoginScreen = (userdata:userData) => {
     setItem('userAccount', userdata)
     user.setUser(userdata)
+    setUserInputs({
+      usertag: "",
+      password: "",
+      confirmPassword: "",
+    })
     navigation.navigate('DialogList')
   }
 

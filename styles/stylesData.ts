@@ -5,7 +5,7 @@ export const stylesData = {
   width: Dimensions.get('window').width,
 
   accent1: '#1e1e27',
-  accent2: '#17191f',
+  accent2: '#17141F',
 
   leftMessage: '#ffffff11',
   rightMessage: '#d06af838',
