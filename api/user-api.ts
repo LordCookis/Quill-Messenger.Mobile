@@ -4,8 +4,8 @@ import axios from "axios"
 
 const api_url = 'http://192.168.1.208:4000/api'
 
-const loginAPI = async(userdata: {usertag: string, password: string}) => {
-  const url = `${api_url}/user/login`
+const loginAPI = async(userdata: {usertag:string, password:string}, host:string) => {
+  const url = `http://${'26.38.55.97:4000'}/api/user/login`
   try{
     const result = await axios.post(url, {
       usertag: userdata.usertag,
@@ -25,8 +25,8 @@ const loginAPI = async(userdata: {usertag: string, password: string}) => {
   }
 }
 
-const registerAPI = async(userdata: {usertag: string, password: string, confirmPassword: string}) => {
-  const url = `${api_url}/user/register`
+const registerAPI = async(userdata: {usertag:string, password:string, confirmPassword:string}, host:string) => {
+  const url = `http://${'26.38.55.97:4000'}/api/user/register`
   if(userdata.password !== userdata.confirmPassword){
     return {message: "Passwords do not match!", status: 400};
   }
@@ -49,9 +49,9 @@ const registerAPI = async(userdata: {usertag: string, password: string, confirmP
   }
 }
 
-const fetchAllUsersAPI = async() => {
+const fetchAllUsersAPI = async(host:string) => {
   try{
-    const result = await axios.get(`${api_url}/user/getall`)
+    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/user/getall`)
     return({
       data: result.data,
       status: 200
@@ -66,9 +66,9 @@ const fetchAllUsersAPI = async() => {
   }
 }
 
-const fetchUserByIdAPI = async(_id: string) => {
+const fetchUserByIdAPI = async(_id:string) => {
   try{
-    const result = await axios.get(`${api_url}/user/find/${_id}`)
+    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/user/find/${_id}`)
     return({
       data: result.data,
       status: 200
@@ -83,9 +83,9 @@ const fetchUserByIdAPI = async(_id: string) => {
   }
 }
 
-const fetchUserByTagAPI = async(usertag: string) => {
+const fetchUserByTagAPI = async(usertag:string) => {
   try{
-    const result = await axios.get(`${api_url}/user/findtag/${usertag}`)
+    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/user/findtag/${usertag}`)
     return({
       data: result.data,
       status: 200
@@ -100,9 +100,9 @@ const fetchUserByTagAPI = async(usertag: string) => {
   }
 }
 
-const updateUserProfileAPI = async(data: {_id: string, avatar?: any, displayedName?: string}) => {
+const updateUserProfileAPI = async(data: {_id:string, avatar?:any, displayedName?:string}, host:string) => {
   try{
-    const result = await axios.post(`${api_url}/user/update`, data)
+    const result = await axios.post(`http://${'26.38.55.97:4000'}/api/user/update`, data)
     return({
       data: result.data,
       status: 200

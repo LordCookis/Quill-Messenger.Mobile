@@ -23,7 +23,7 @@ export default function GroupCreat({navigation}:any) {
   const [groupMembers, setGroupMembers] = useState<any>([user._id])
   const socket: Socket | any = useContext(SocketContext)
   const warning: any = useContext(WarningContext)
-  const [image, setImage] = useState<any>({format: null, code: null})
+  const [image, setImage] = useState<string>('')
 
   useEffect(() => {
     if (!socket?.connected) { return }
@@ -56,7 +56,7 @@ export default function GroupCreat({navigation}:any) {
       })
       if (image) {
         const file = `data:${image.mime};base64,${image.data}`
-        setImage({format: 'png', code: file})
+        setImage(file)
       }
     } catch (err:any) {
       console.log('Ошибка при выборе файла', err.message)
@@ -66,17 +66,17 @@ export default function GroupCreat({navigation}:any) {
   const creatNewGroup = () => {
     if(groupMembers.length < 1){return}
     tryCatch(async()=>{ 
-      await netRequestHandler(()=>createNewGroupAPI(groupName, image, groupMembers), warning)
+      await netRequestHandler(()=>createNewGroupAPI(groupName, {format: 'jpg', code: image}, groupMembers, user.host), warning)
       navigation.navigate('DialogList')
     })
   }
 
   return(
     <View style={styles.groupView}>
-      {image.format ? 
+      {image ? 
       <Image
         style={styles.groupImage}
-        source={{uri:image.code}}/> : 
+        source={{uri:image}}/> : 
       <Pressable onPress={pickAvatar}><Image
         style={styles.groupImage}
         source={{uri:'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}}/>
@@ -89,9 +89,9 @@ export default function GroupCreat({navigation}:any) {
       />
       {members.map((member:any)=>{
         return(
-          <Pressable onPress={()=>newMember(member._id)}>
+          <Pressable onPress={()=>newMember(member._id)} key={member._id}>
           <View style={groupMembers.includes(member._id) ? styles.memberTab : styles.member}>
-            <Image style={[{height: 45, width: 45, borderRadius: 50}]} source={{uri:`data:image/${member?.avatar.format};base64,${member?.avatar.code}`}}/>
+            <Image style={[{height: 45, width: 45, borderRadius: 50}]} source={{uri:member?.avatar.code}}/>
             <View style={styles.nameView}>
               <Text style={styles.name}>{member.displayedName || member.usertag}</Text>
               {member.displayedName ? <Text style={styles.tag}>{member.usertag}</Text> : null}

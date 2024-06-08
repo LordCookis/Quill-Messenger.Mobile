@@ -25,6 +25,8 @@ interface messageStore {
   setChatHistory: (data: {chatID: string, messages: message[]}) => void,
   setIsTyping: (data: {chatID: string, state: boolean}) => void,
   setInputMessage: (data: {chatID: string, message: string}) => void,
+  removeMessage: (data: message) => void,
+  clearMessageStore: () => void,
 }
 
 export const useMessageStore = create<messageStore>()((set) => ({
@@ -51,5 +53,11 @@ export const useMessageStore = create<messageStore>()((set) => ({
     messagesHistory: {...state.messagesHistory, [data.chatID]: {
       ...state.messagesHistory[data.chatID], inputMessage: data.message
     }}
-  }))
+  })),
+  removeMessage: (data) => set((state: any) => ({
+    messagesHistory: {...state.messagesHistory, [data?.chatID]: {
+      ...state?.messagesHistory[data.chatID], messages: state?.messagesHistory[data?.chatID]?.messages.filter((message: message) => message._id != data._id)
+    }}
+  })),
+  clearMessageStore: () => set(()=>({messagesHistory: {}})),
 }))

@@ -41,7 +41,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
 
   useEffect(()=>{
     if(opponentData || !socket?.connected){return}
-    const userID = chat.members[0] != user._id ? chat.members[0] : chat.members[1]
+    const userID = chat?.members[0] != user._id ? chat.members[0] : chat.members[1]
     tryCatch(async()=>{
       const result = await netRequestHandler(()=>fetchUserByIdAPI(userID), warning)
       setOpponentData(result.data)
@@ -77,7 +77,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
   return(
     <Pressable onPress={selectChat}>
     <View style={styles.messageBlock}>
-    {opponentData?.avatar.format ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:`data:image/${opponentData?.avatar.format};base64,${opponentData?.avatar.code}`}}/> : <></>}
+    {opponentData?.avatar.code ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:opponentData?.avatar.code}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{opponentData?.displayedName}</Text>

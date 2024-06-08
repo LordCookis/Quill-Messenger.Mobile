@@ -11,6 +11,7 @@ import { tryCatch } from '../utils/try-catch'
 import { netRequestHandler } from '../utils/net-request-handler'
 import { WarningContext, warningHook } from '../lib/warning/warning-context'
 import { useAccountStore } from '../stores/account-store'
+import { useCounterStore } from '../stores/counter-store'
 
 export const SocketContext: any = createContext(null)
 
@@ -18,7 +19,10 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   const chatStore = useChatStore()
   const warning = useContext<warningHook>(WarningContext)
   const user = useAccountStore()
+  const counterStore = useCounterStore()
+  const {activeChat} = useChatStore()
   const messagesStore = useMessageStore()
+  const accountStore = useAccountStore()
   const [socket, setSocket] = useState<Socket | null | any>()
   const navigation = useNavigation()
   const [route, setRoute] = useState(navigation.getState()?.routes[navigation.getState()?.routes.length - 1].name)
@@ -29,7 +33,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   }, [navigation])
 
   useEffect(()=>{
-    const newSocket = io(`ws://192.168.1.208:4000/?_id=${_id}`, {
+    const newSocket = io(`ws://${'26.38.55.97:4000'}/?_id=${_id}`, {
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionAttempts: 100
@@ -64,17 +68,50 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   useEffect(()=>{
     if(!socket?.connected){return}
     socket.on('newMessage', (data: message) => {
+      if(activeChat?.chat?._id != data.chatID){
+        console.log("ADDING TO COUNTER")
+        console.log(data.chatID)
+        counterStore.addCounter({chatID: data.chatID})
+      }
+      if(!chatStore?.userChats[data.chatID]?._id){
+        chatStore.addNewChat({
+          _id: data.chatID,
+          members: [data.senderID, accountStore._id],
+          inputMessage: '',
+        })
+        messagesStore.setChatHistory({chatID: data.chatID, messages: []})
+      }
       chatStore.setChatMessageTime({chatID: data.chatID, time: data.createdAt})
       messagesStore.addMessage(data)
     })
     socket.on('typing', (data: {chatID: string, state: boolean}) => {
+      if(!chatStore?.userChats[data.chatID]?._id){return}
+      console.log("TYPING", data.state)
       chatStore.setIsTyping({chatID: data.chatID, state: data.state})
+    })
+    socket.on('removeChat', (data: {chatID: string, recipientID: string}) => {
+      console.log("REMOVE CHsAT", data)
+      counterStore.resetCounter({chatID: data.chatID})
+      chatStore.removeChat({chatID: data.chatID})
+    })
+    socket.on('removeMessage', (data: message) => {
+      messagesStore.removeMessage(data)
+    })
+    socket.on('userDeleted', (data: {userID: string}) => {
+      console.log("REMOVE user", data)
+      Object.keys(chatStore.userChats).forEach((chatID) => {
+        if(chatStore.userChats[chatID]?.members.includes(data.userID)){
+          counterStore.resetCounter({chatID: chatID})
+          chatStore.removeChat({chatID: chatID})
+        }
+      })
     })
     return () => {
       socket.off('newMessage')
+      socket.off('removeChat')
       socket.off('typing')
     }
-  }, [socket])
+  }, [socket, activeChat, Object.keys(chatStore.userChats).length])
 
   useEffect(()=>{
     fillMessagesPreview()
@@ -84,7 +121,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
     Object.keys(chatStore.userChats).map((chat: string) => {
       if(messagesStore?.messagesHistory[chat]?.messages?.length){return}
       tryCatch(async()=>{
-        const latestMessage = await netRequestHandler(()=>fetchLatestMessageAPI(chatStore.userChats[chat]._id), warning)
+        const latestMessage = await netRequestHandler(()=>fetchLatestMessageAPI(chatStore.userChats[chat]._id, user.host), warning)
         messagesStore.setChatHistory({chatID: chat, messages: latestMessage.data.reverse()})
       })
     })

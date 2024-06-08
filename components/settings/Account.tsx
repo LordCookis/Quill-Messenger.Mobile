@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { StyleSheet, View, Image, TextInput, Text, Pressable, Modal } from 'react-native'
 import { updateUserProfileAPI } from '../../api/user-api'
 import { setItem } from "../../lib/async-storage"
@@ -28,10 +28,9 @@ export default function Account(){
         mediaType: 'photo'
       })
       if (image) {
-        const format:any = image.mime.split('/')[1]
-        const base64:any = image.data
-        setImage({format: format, code: base64})
-        setNewData({...newData, avatar: {format: format, code: base64}})
+        const file = `data:${image.mime};base64,${image.data}`
+        setImage({format: 'png', code: file})
+        setNewData({...newData, avatar: {format: 'png', code: file}})
       }
     } catch (err:any) {
       console.log('Ошибка при выборе файла', err.message)
@@ -39,11 +38,8 @@ export default function Account(){
   }
 
   const update = async() => {
-    const result = await updateUserProfileAPI({_id: user._id, ...newData})
-    if(result.status >= 400){
-      warning.showWindow({title: "Couldn't update", message: `Something went wrong!: ${result.message}`})
-      return
-    }
+    const result = await updateUserProfileAPI({_id: user._id, ...newData}, user.host)
+    if(result.status >= 400){ return }
     setItem('userdata', result.data)
     setUser(result.data)
   }
@@ -53,9 +49,9 @@ export default function Account(){
       <View style={styles.userData}>
         <View style={styles.linkUserImage}>
           <Pressable onPress={()=>pickAvatar()}>
-            {image.format ? <Image
+            {image.code ? <Image
               style={styles.userImage}
-              source={{uri:`data:image/${image.format};base64,${image.code}`}}/> : <></>}
+              source={{uri:image.code}}/> : <View style={[styles.userImage]}/>}
           </Pressable>
         </View>
         <View>
@@ -72,7 +68,7 @@ export default function Account(){
           placeholderTextColor={stylesData.gray}/>
         <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Сохранить</Text></Pressable>
       </View>
-      <View>
+      <View style={{marginBottom: 50}}>
         <TextInput
           style={styles.dataInput}
           placeholder='Введите старый пароль'
@@ -96,11 +92,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: stylesData.accent2,
     flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   userData: {
     margin: 15,
-    marginTop: 30,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',

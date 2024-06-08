@@ -10,6 +10,7 @@ type userData = {
     code: string,
   },
   displayedName: string,
+  host: string,
 }
 
 interface AccoutStore {
@@ -20,6 +21,7 @@ interface AccoutStore {
     code: string,
   },
   displayedName: string,
+  host: string,
   connect: number,
   setUser: (data: userData) => void,
   clearAccountStore: () => void,
@@ -34,12 +36,14 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
   },
   usertag: "",
   displayedName: "",
+  host: "",
   connect: 0,
   setUser: (userdata: userData) => set(() => ({
     _id: userdata._id,
     usertag: userdata.usertag,
     avatar: userdata.avatar,
     displayedName: userdata.displayedName,
+    host: userdata.host,
   })),
   clearAccountStore: () => set(()=>({
     _id: "",
@@ -49,6 +53,7 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
       code: "",
     },
     displayedName: "",
+    host: "",
   })),
   setConnect: (info: number) => set(()=>({connect: info})),
 }),{

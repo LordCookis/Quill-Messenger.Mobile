@@ -21,6 +21,7 @@ export default function Login({navigation}:any) {
     usertag: "",
     password: "",
     confirmPassword: "",
+    host: "",
   })
   const [inputFocus, setInputFocus] = useState<number>(0)
   const [rawInput, setRawInput] = useState<string>('')
@@ -37,21 +38,22 @@ export default function Login({navigation}:any) {
       usertag: "",
       password: "",
       confirmPassword: "",
+      host: "",
     })
     navigation.navigate('DialogList')
   }
 
   const registerNewAccount = async() => {
     tryCatch(async()=>{
-      const result = await netRequestHandler(()=>registerAPI(userInputs), warning)
-      passLoginScreen(result.data)
+      const result = await netRequestHandler(()=>registerAPI(userInputs, userInputs.host), warning)
+      passLoginScreen({...result.data, host: userInputs.host})
     })
   }
 
   const loginAccount = async() => {
     tryCatch(async()=>{
-      const result = await netRequestHandler(()=>loginAPI(userInputs), warning)
-      passLoginScreen(result.data)
+      const result = await netRequestHandler(()=>loginAPI(userInputs, userInputs.host), warning)
+      passLoginScreen({...result.data, host: userInputs.host})
     })
   }
 
@@ -77,8 +79,7 @@ export default function Login({navigation}:any) {
           style={[styles.loginInput, {backgroundColor: inputFocus === 1 ? stylesData.messageInputHover : stylesData.loginInput}]}
           placeholder='User Tag'
           placeholderTextColor={'#cccccc'}
-          onFocus={()=>handleFocus(1)}
-        />
+          onFocus={()=>handleFocus(1)}/>
         <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, password: inputFilter(e)})}
           value={userInputs.password}
@@ -86,8 +87,7 @@ export default function Login({navigation}:any) {
           placeholder='Password'
           placeholderTextColor={'#cccccc'}
           secureTextEntry={true}
-          onFocus={()=>handleFocus(2)}
-        />
+          onFocus={()=>handleFocus(2)}/>
         {!tab || <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, confirmPassword: inputFilter(e)})}
           value={userInputs.confirmPassword}
@@ -97,6 +97,13 @@ export default function Login({navigation}:any) {
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
         />}
+        <TextInput
+          onChangeText={(e)=>setUserInputs({...userInputs, host: e})}
+          value={userInputs.host}
+          style={[styles.loginInput, {backgroundColor: inputFocus === 4 ? stylesData.messageInputHover : stylesData.loginInput}]}
+          placeholder='Host'
+          placeholderTextColor={'#cccccc'}
+        onFocus={()=>handleFocus(4)}/>
         <Text
           onPress={tab ? registerNewAccount : loginAccount}
           style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}

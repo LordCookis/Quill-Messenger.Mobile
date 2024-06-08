@@ -1,18 +1,15 @@
-import * as React from 'react'
-import { View, Image, Text, StyleSheet, Dimensions, Pressable } from 'react-native'
-import { useEffect, useState, useContext } from 'react'
+import { View, Image, Text, StyleSheet, Pressable } from 'react-native'
+import { useState, useContext, useEffect } from 'react'
 import Icon from '../../assets/Icons'
-import { fetchUserGroupsAPI } from '../../api/group-api'
-import { useGroupStore } from '../../stores/group-store'
 import { useAccountStore } from '../../stores/account-store'
 import { Socket } from 'socket.io-client'
 import { SocketContext } from '../../context/socket-context'
 import { WarningContext } from '../../lib/warning/warning-context'
-import { tryCatch } from '../../utils/try-catch'
-import { netRequestHandler } from '../../utils/net-request-handler'
 import { useChatStore } from '../../stores/chat-store'
 import { warningHook } from '../../lib/warning/warning-context'
 import { stylesData } from '../../styles/stylesData'
+import { decodeImage } from '../../utils/decodeImage'
+
 
 type MessageData = {
   senderID: string
@@ -22,6 +19,7 @@ type MessageData = {
 }
 
 export default function Group({group, messagesStore, navigation}:any){
+  const [opponentData, setOpponentData] = useState<any>()
   const {activeChat, setActiveChat} = useChatStore()
   const socket: Socket | any = useContext(SocketContext)
   const user = useAccountStore()
@@ -33,7 +31,22 @@ export default function Group({group, messagesStore, navigation}:any){
     time: "",
   });
 
-  const selectGroup = () => {}
+  const selectGroup = () => {
+    setActiveChat({chat: group, friend: opponentData})
+    navigation.navigate('GroupChat', {chatID: group._id})
+  }
+
+  useEffect(()=>{
+    if(group.members.length > 2){
+      setOpponentData({
+        avatar: group.image?.code,
+        displayedName: group.name,
+        usertag: `${group.members.length} members`,
+        type: 'group'
+      })
+      return
+    }
+  }, [])
 
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
   const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
@@ -54,7 +67,7 @@ export default function Group({group, messagesStore, navigation}:any){
   return(
     <Pressable onPress={selectGroup}>
     <View style={styles.messageBlock}>
-    {group?.image.format ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:`data:image/${group?.image.format};base64,${group?.image.code}`}}/> : <></>}
+    {group.image?.code ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:group?.image.code}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{group?.name}</Text>

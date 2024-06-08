@@ -6,11 +6,9 @@ import Menu from '../settings/Menu'
 import Dialog from './Dialog'
 import Group from '../groups/Group'
 import { chat, useChatStore } from '../../stores/chat-store'
-import { useGroupStore } from '../../stores/group-store'
 import { useAccountStore } from '../../stores/account-store'
 import { useMessageStore } from '../../stores/messages-store'
 import { createNewChatAPI, fetchUserChatsAPI } from '../../api/chat-api'
-import { fetchUserGroupsAPI } from '../../api/group-api'
 import { inputFilter } from '../../utils/input-filter'
 import { fetchUserByTagAPI } from '../../api/user-api'
 import { WarningContext } from '../../lib/warning/warning-context'
@@ -23,7 +21,6 @@ import { stylesData } from '../../styles/stylesData'
 
 export default function DialogList({ navigation }: any) {
   const chatStore = useChatStore()
-  const {userGroups, setUserGroups}:any = useGroupStore()
   const messagesStore = useMessageStore()
   const [search, setSearch] = useState<string>("")
   const [rawInput, setRawInput] = useState('')
@@ -37,35 +34,14 @@ export default function DialogList({ navigation }: any) {
   useEffect(() => {
     user.setConnect(2)
     if (!socket?.connected) { return }
-    if (!focus) {
-      tryCatch(async () => {
-        const result = await netRequestHandler(() => fetchUserChatsAPI(user._id), warning)
-        let newObj: any = {}
-        result.data?.chats?.map((chat: chat) => {
-          newObj[chat._id] = {
-            ...chat,
-            isTyping: false,
-            lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length - 1]?.createdAt,
-            inputMessage: ""
-          }
-        })
-        chatStore.setUserChats(newObj)
+    tryCatch(async()=>{
+      const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id, ''), warning)
+      let newObj: any = {}
+      result.data?.map(async (chat: chat) => {
+        newObj[chat._id] = {...chat, isTyping: false, lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length-1]?.createdAt, inputMessage: ""}
       })
-    } else {
-      tryCatch(async () => {
-        const result = await netRequestHandler(() => fetchUserGroupsAPI(user._id), warning)
-        let newObj: any = {}
-        result.data?.groups?.map((group: any) => {
-          newObj[group._id] = {
-            ...group,
-            isTyping: false,
-            lastMessage: messagesStore.messagesHistory[group._id]?.messages[messagesStore.messagesHistory[group._id]?.messages.length - 1]?.createdAt,
-            inputMessage: ""
-          }
-        })
-        chatStore.setUserGroups(newObj)
-      })
-    }
+      chatStore.setUserChats(newObj)
+    })
   }, [socket?.connected])
 
   useEffect(() => { setSearch(inputFilter(rawInput)) }, [rawInput])
@@ -78,8 +54,9 @@ export default function DialogList({ navigation }: any) {
         if (chatStore.userChats[chat].members[0] == secondUser.data._id || chatStore.userChats[chat].members[1] == secondUser.data._id) { return true }
       })
       if (doesChatExist.length) { return }
-      const newChat = await netRequestHandler(() => createNewChatAPI(user._id, secondUser.data._id), warning)
+      const newChat = await netRequestHandler(() => createNewChatAPI(user._id, secondUser.data._id, user.host), warning)
       chatStore.addNewChat(newChat.data)
+      setSearch('')
       setFind(false)
     })
   }
@@ -90,7 +67,7 @@ export default function DialogList({ navigation }: any) {
 
   const animatedStyle = useAnimatedStyle(() => { return { transform: [{ translateX: animTranslateX.value }] } })
 
-  return (
+  return(
     <>
     <Animated.View style={[styles.menu, animatedStyle]}>
       <Menu navigation={navigation} closeMenu={closeMenu}/>
@@ -121,11 +98,11 @@ export default function DialogList({ navigation }: any) {
         </View>
         <ScrollView>
           {!focus ?
-            Object.keys(chatStore.userChats)?.map((keyname: string) => (
-              <Dialog key={chatStore.userChats[keyname]._id} chat={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/>
+            Object.keys(chatStore.userChats)?.map((keyname: string, index: number) => (
+              !Boolean(chatStore.userChats[keyname].image) ? <Dialog key={chatStore.userChats[keyname]._id + index} chat={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/> : <></>
             )) :
-            Object.keys(chatStore.userGroups)?.map((keyname: string) => (
-              <Group key={chatStore.userGroups[keyname]._id} group={chatStore.userGroups[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userGroups[keyname]._id]} navigation={navigation}/>
+            Object.keys(chatStore.userChats)?.map((keyname: string, index: number) => (
+              Boolean(chatStore.userChats[keyname].image) ? <Group key={chatStore.userChats[keyname]._id + index} group={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/> : <></>
             ))}
         </ScrollView>
       </View>

@@ -9,8 +9,8 @@ import DialogList from './components/dialogs/DialogList'
 import DialogChat from './components/dialogs/DialogChat'
 import Group from './components/groups/Group'
 import Account from './components/settings/Account'
-import Interface from './components/settings/Interface'
 import GroupCreat from './components/groups/GroupCreat'
+import GroupChat from './components/groups/GroupChat'
 import SocketWrapper from './context/socket-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -32,7 +32,7 @@ export default function App() {
 
   return(
     <NavigationContainer>
-      <StatusBar backgroundColor={'#18191e'} barStyle={'light-content'}/>
+      <StatusBar backgroundColor={'#17141F'} barStyle={'light-content'}/>
       <SocketWrapper _id={user._id}>
       {checked && <Stack.Navigator initialRouteName={mainView}>
         <Stack.Screen name='Login' component={Login} options={{ headerShown: false }}/>
@@ -40,8 +40,8 @@ export default function App() {
         <Stack.Screen name='DialogChat' component={DialogChat} options={{ headerShown: false }}/>
         <Stack.Screen name='Group' component={Group} options={{ headerShown: false }}/>
         <Stack.Screen name='Account' component={Account} options={{ headerShown: false }}/>
-        <Stack.Screen name='Interface' component={Interface} options={{ headerShown: false }}/>
         <Stack.Screen name='GroupCreat' component={GroupCreat} options={{ headerShown: false }}/>
+        <Stack.Screen name='GroupChat' component={GroupChat} options={{ headerShown: false }}/>
       </Stack.Navigator>}
       </SocketWrapper>
     </NavigationContainer>

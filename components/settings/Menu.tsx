@@ -27,9 +27,9 @@ export default function Menu({navigation, closeMenu}:any){
         <View style={styles.titleView}><Icon.Quill/><Text style={styles.titleText}>Quill Messenger</Text></View>
           <View style={styles.userData}>
             <View style={styles.linkUserImage}>
-              {user.avatar.format ? <Image
+              {user.avatar.code ? <Image
               style={styles.userImage}
-              source={{uri:`data:image/${user.avatar.format};base64,${user.avatar.code}`}}/> : <></>}
+              source={{uri:user.avatar.code}}/> : <View style={[styles.userImage]}/>}
             </View>
             <View>
               <Text style={styles.displayedName}>{user.displayedName}</Text>

@@ -6,6 +6,7 @@ export type userData = {
     code: string,
   },
   displayedName: string,
+  host: string,
 }
 
 export type chat = {
