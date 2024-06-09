@@ -97,13 +97,6 @@ export default function Login({navigation}:any) {
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
         />}
-        <TextInput
-          onChangeText={(e)=>setUserInputs({...userInputs, host: e})}
-          value={userInputs.host}
-          style={[styles.loginInput, {backgroundColor: inputFocus === 4 ? stylesData.messageInputHover : stylesData.loginInput}]}
-          placeholder='Host'
-          placeholderTextColor={'#cccccc'}
-        onFocus={()=>handleFocus(4)}/>
         <Text
           onPress={tab ? registerNewAccount : loginAccount}
           style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}

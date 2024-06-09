@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ComponentProps } from 'react'
 import Svg, { Path, G } from "react-native-svg"
 import { Image } from 'react-native'
+import FastImage from 'react-native-fast-image'
 
 interface IconProps extends ComponentProps<'svg'> {}
 
@@ -104,8 +105,9 @@ const DoubleCheck = (props: IconProps) => {
 }
 
 const AddUser = (props: IconProps) => {
+  const {...SvgProps} = props
   return(
-    <Svg fill="none" width={36} height={36} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <Svg fill="none" width={40} height={40} {...SvgProps} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <G><Path opacity="0.4" d="M16.19 2H7.81C4.17 2 2 4.17 2 7.81V16.18C2 19.83 4.17 22 7.81 22H16.18C19.82 22 21.99 19.83 21.99 16.19V7.81C22 4.17 19.83 2 16.19 2Z" fill="#00000000"/><Path d="M16 11.25H12.75V8C12.75 7.59 12.41 7.25 12 7.25C11.59 7.25 11.25 7.59 11.25 8V11.25H8C7.59 11.25 7.25 11.59 7.25 12C7.25 12.41 7.59 12.75 8 12.75H11.25V16C11.25 16.41 11.59 16.75 12 16.75C12.41 16.75 12.75 16.41 12.75 16V12.75H16C16.41 12.75 16.75 12.41 16.75 12C16.75 11.59 16.41 11.25 16 11.25Z" fill="#cccccc"/></G>
     </Svg>
   )
@@ -130,7 +132,7 @@ const Loading = (props: IconProps) => {
 }
 
 const AnimatedPen = (props: IconProps) => {
-  return(<Image source={require("../public/animated/anim-pen.gif")} style={[{height: 19, width: 19}]}/>)
+  return(<FastImage source={require("../public/animated/anim-pen.gif")} style={[{height: 20, width: 20}]}/>)
 }
 
 const AudioCall = () => {
@@ -203,6 +205,27 @@ const Menu = (props:IconProps)=> {
   )
 }
 
+const Arrow = (props:IconProps & {color:string})=> {
+  const {color, ...SvgProps} = props
+  return(
+    <Svg width={25} height={25} {...SvgProps} viewBox="0 0 10 18" fill="none" xmlns="http://www.w3.org/2000/Svg">
+      <Path d="M1 1L8.29249 8.29249C8.68342 8.68342 8.68342 9.31658 8.29249 9.70711L1 17" stroke={color} stroke-linecap="round"/>
+    </Svg>
+  )
+}
+
+const Cross = ()=> {
+  return(
+    <Svg viewBox="0 0 24 24" width={36} height={36} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <G id="SVGRepo_bgCarrier" stroke-width="0"></G>
+      <G id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></G>
+      <G id="SVGRepo_iconCarrier">
+        <Path d="M19 5L4.99998 19M5.00001 5L19 19" stroke="#cccccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></Path>
+      </G>
+    </Svg>
+  )
+}
+
 // strokeWidth
 // strokeLinecap
 // strokeLinejoin
@@ -214,7 +237,7 @@ const Icon = {
   Letter, DoubleCheck, AddUser, SendArrow,
   Loading, AnimatedPen, AudioCall, VideoCall,
   MessageTriangleRight, MessageTriangleLeft,
-  Paperclip, Menu
+  Paperclip, Menu, Arrow, Cross,
 }
 
 export default Icon

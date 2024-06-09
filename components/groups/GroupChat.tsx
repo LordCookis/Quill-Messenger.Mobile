@@ -18,6 +18,7 @@ import { userData } from '../../types/types'
 import { stylesData } from '../../styles/stylesData'
 import ImagePicker from 'react-native-image-crop-picker'
 import { useUserCache } from '../../stores/user-cache'
+import FastImage from 'react-native-fast-image'
 
 type messageData = {
   message: message,
@@ -32,7 +33,7 @@ type messageData = {
   date: Date
 }
 
-export default function GroupChat({route}:any) {
+export default function GroupChat({navigation, route}:any) {
   const {chatID} = route.params
   const chatStore = useChatStore()
   const user = useAccountStore()
@@ -48,10 +49,9 @@ export default function GroupChat({route}:any) {
   const [image, setImage] = useState<any>({format: '', code: ''})
   const [openImage, setOpenImage] = useState<any>({format: '', code: ''})
 
-  useEffect(()=>{
-    if(!messagesHistory[chatID]?.messages?.length){return}
-    ref.current?.scrollToEnd({animated: false})
-  }, [messagesHistory[chatID]?.messages?.length])
+  //useEffect(() => {
+  //  if (ref.current) { ref.current.scrollToEnd({animated: false}) }
+  //}, [messagesHistory[chatID]?.messages])
 
   const sendNewMessage = async(type:any) => {
     if((!chatStore.userChats[chatID]?.inputMessage && !image.format) || !socket){return}
@@ -67,7 +67,7 @@ export default function GroupChat({route}:any) {
         type,
         type === 'text' ? {text: chatStore.userChats[chatID]?.inputMessage} : 
         type === 'media' ? image : {text: chatStore.userChats[chatID]?.inputMessage, ...image}, user.host), warning)
-      socket.emit('newMessage', {message: sentMessage.data, recipientID: [chatStore.activeChat.chat.members]})
+      socket.emit('newMessage', {message: sentMessage.data, recipientID: [chatStore.activeChat.chat.members[0]]})
       addMessage(sentMessage.data)
       chatStore.setInputMessage({chatID, message: ""})
       chatStore.setChatMessageTime({chatID, time: sentMessage.data.createdAt})
@@ -116,64 +116,75 @@ export default function GroupChat({route}:any) {
     } catch (err:any) { console.log('Ошибка при выборе файла', err.message) }
   }
 
+  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
+
   return(
     <SafeAreaView style={styles.chatBox}>
       <View style={styles.topPanel}>
-        {chatStore.activeChat?.friend?.avatar ? <Image source={{uri:chatStore.activeChat?.friend?.avatar}} style={[styles.avatar, {margin: 5}]}/> : <></>}
-        <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
-        <Text style={styles.usertag}>{chatStore.activeChat?.friend?.usertag}
-          {messagesHistory[chatID]?.isTyping 
-          ? <Text style={styles.typing}><Icon.AnimatedPen/>Typing...</Text> 
-          : <></>}
-        </Text>
+        <Pressable onPress={()=>navigation.goBack()} style={{marginRight: 38}}><Icon.Arrow color={stylesData.rightMessage} style={{transform:[{rotate: '180deg'}], margin: 10}}/></Pressable>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          {chatStore.activeChat?.friend?.avatar ? <Image source={{uri:chatStore.activeChat?.friend?.avatar}} style={[styles.avatar, {margin: 5}]}/> : <></>}
+          <View>
+            <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
+            <Text style={styles.usertag}>{chatStore.activeChat?.friend?.usertag}</Text>
+          </View>
+        </View>
+        {chatStore.userChats[chatID]?.isTyping ? <Typing/> : <View style={{width: 76.5}}/>}
       </View>
       <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
         <FlatList
           ref={ref}
-          data={messagesHistory[chatID]?.messages || []}
+          data={[...(messagesHistory[chatID]?.messages || [])].reverse()}
+          inverted
           keyExtractor={(item:any) => item._id}
           renderItem={({item:message, index}:any) => {
             if (!userCache.userCache[message.senderID]) { userCache.addUserCache(message.senderID) }
             const date = new Date(message.createdAt)
             const nextMessage = {
-              date: messagesHistory[chatID]?.messages[index + 1]?.createdAt,
-              samePerson: messagesHistory[chatID]?.messages[index + 1]?.senderID == message.senderID,
-              differentDate: isDifferentDay(message.createdAt, messagesHistory[chatID]?.messages[index + 1]?.createdAt),
-              minutes: differenceInMinutes(message.createdAt, messagesHistory[chatID]?.messages[index + 1]?.createdAt)
+              date: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt,
+              samePerson: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.senderID == message.senderID,
+              differentDate: isDifferentDay(
+                message.createdAt,
+                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
+              ),
+              minutes: differenceInMinutes(
+                message.createdAt,
+                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
+              )
             }
             return(
               <Fragment key={message._id}>
                 <View style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage}>
                   {message.type === 'text' ?
                   <View style={styles.friend}>
-                    {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? <Image source={{uri:message.senderID == user._id ? String(user?.avatar) : String(userCache.userCache[message.senderID]?.avatar)}} style={[styles.avatar, {margin: 5}]}/> : <View style={{width: 50}}/>}
+                    {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? message.senderID !== user._id ? (<FastImage source={{uri:userCache.userCache[message.senderID]?.avatar.code}} style={[styles.avatar, {margin: 5, marginLeft: 10}]}/>) : (<></>) : <View style={{width: 55}}/>}
                     <View style={message.senderID == user._id ? styles.rightText : styles.leftText}>
                       <Text style={[{color: stylesData.white, fontSize: 15}]}>{typeof message.text.text === 'string' ? message.text.text : ''}</Text>
                       <Text style={[ styles.timeSent, message.senderID == user._id ? { textAlign: 'right' } : { textAlign: 'left' }]}>
-                        {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes < 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
+                        {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
                       </Text>
                     </View>
                   </View> :
                     message.type === 'media' ?
                       <View style={styles.friend}>
-                        {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 && message.senderID !== user._id ? <Image source={{uri:message.senderID == user._id ? String(user?.avatar) : String(userCache.userCache[message.senderID]?.avatar)}} style={[styles.avatar, {margin: 5}]}/> : <View style={{width: 50}}/>}
+                        {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 && message.senderID !== user._id ? message.senderID !== user._id ? (<FastImage source={{uri:userCache.userCache[message.senderID]?.avatar.code}} style={[styles.avatar, {margin: 5, marginLeft: 10}]}/>) : (<></>)  : <View style={{width: 55}}/>}
                         <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]} onPress={()=>setOpenImage({...message.text})}>
-                          <Image source={{uri:(message.text as {format:string; code:string}).code}} style={styles.messageImage}/>
+                          <FastImage source={{uri:(message.text as {format:string; code:string}).code}} style={styles.messageImage} />
                           {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id && <Text style={[ styles.timeSent, message.senderID == user._id ? { textAlign: 'right' } : { textAlign: 'left' }, {margin: 2.5, marginHorizontal: 5}]}>
-                            {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes < 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
+                            {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
                           </Text>}
                         </Pressable>
                       </View>  :
                       <View style={styles.friend}>
-                        {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? <Image source={{uri:message.senderID == user._id ? String(user?.avatar) : String(userCache.userCache[message.senderID]?.avatar)}} style={[styles.avatar, {margin: 5}]}/> : <View style={{width: 50}}/>}
+                        {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? message.senderID !== user._id ? (<FastImage source={{uri:userCache.userCache[message.senderID]?.avatar.code}} style={[styles.avatar, {margin: 5, marginLeft: 10}]}/>) : (<></>)  : <View style={{width: 55}}/>}
                         <View style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]}>
                           <Pressable onPress={()=>setOpenImage({...message.text})}>
-                            <Image source={{uri:(message.text as {format:string; code:string; text:string}).code}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}/>
+                            <FastImage source={{uri:(message.text as {format:string; code:string; text:string}).code}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}/>
                           </Pressable>
                           <View style={{padding: 5}}>
                             <Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'left', width: (stylesData.width * 0.5) - 10}]}>{(message.text as {format:string; code:string; text:string}).text}</Text>
                             <Text style={[ styles.timeSent, message.senderID == user._id ? { textAlign: 'right' } : { textAlign: 'left' }]}>
-                              {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes < 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
+                              {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
                             </Text>
                           </View>
                         </View>
@@ -240,7 +251,7 @@ const styles = StyleSheet.create({
   topPanel: {
     padding: 10,
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
   },
@@ -259,14 +270,9 @@ const styles = StyleSheet.create({
     color: stylesData.darkGray,
   },
   typing: {
+    color: stylesData.appmessage,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    color: stylesData.white,
-    top: 45,
-    left: 420,
-    opacity: 0.4,
-    fontSize: 13,
   },
   chatContent: {
     display: 'flex',

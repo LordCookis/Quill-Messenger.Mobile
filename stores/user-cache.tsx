@@ -14,7 +14,7 @@ export const useUserCache = create<counterStore>()(persist((set) => ({
   userCache: {},
   addUserCache: async (data) => {
     const user = await netRequestHandler(()=>fetchUserByIdAPI(data))
-    set((state)=>({userCache: {...state.userCache, [data]: {...user.data, avatar: user?.data?.avatar?.code}}}))
+    set((state)=>({userCache: {...state.userCache, [data]: {...user.data, avatar: {format: 'png', code: user?.data?.avatar?.code}}}}))
   },
   removeUserCache: () => set({userCache: {}})
 }),{

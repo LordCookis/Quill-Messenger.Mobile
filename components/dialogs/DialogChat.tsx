@@ -17,6 +17,8 @@ import { friend } from '../../stores/chat-store'
 import { userData } from '../../types/types'
 import { stylesData } from '../../styles/stylesData'
 import ImagePicker from 'react-native-image-crop-picker'
+import FastImage from 'react-native-fast-image'
+import { removeMessageAPI } from '../../api/message-api'
 
 type messageData = {
   message: message,
@@ -31,7 +33,7 @@ type messageData = {
   date: Date
 }
 
-export default function DialogChat({route}:any) {
+export default function DialogChat({navigation, route}:any) {
   const {chatID} = route.params
   const chatStore = useChatStore()
   const user = useAccountStore()
@@ -40,16 +42,16 @@ export default function DialogChat({route}:any) {
   const ref = useRef<any>(null)
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const [typingTimer, setTypingTimer] = useState<any>(null)
-  const {messagesHistory, addMessage}:any = useMessageStore()
+  const {messagesHistory, addMessage, removeMessage}:any = useMessageStore()
   const [messege, setMessege] = useState<string>('')
   const [modal, setModal] = useState<boolean>(false)
   const [image, setImage] = useState<any>({format: '', code: ''})
   const [openImage, setOpenImage] = useState<any>({format: '', code: ''})
+  const [deleted, setDeleted] = useState<any>(null)
 
-  useEffect(()=>{
-    if(!messagesHistory[chatID]?.messages?.length){return}
-    ref.current?.scrollToEnd({animated: false})
-  }, [messagesHistory[chatID]?.messages?.length])
+  //useEffect(() => {
+  //  if (ref.current) { ref.current.scrollToEnd({animated: false}) }
+  //}, [messagesHistory[chatID]?.messages])
 
   const sendNewMessage = async(type:any) => {
     if((!chatStore.userChats[chatID]?.inputMessage && !image.format) || !socket){return}
@@ -116,52 +118,73 @@ export default function DialogChat({route}:any) {
     }
   }
 
+  const handleRemoveMessage = async(message: message) => {
+    tryCatch(async() => {
+      await netRequestHandler(()=>removeMessageAPI({_id: message._id}), warning)
+      socket.emit('removeMessage', {messageID: message._id, chatID: chatID, recipientID: chatStore.activeChat.chat.members})
+      removeMessage(message)
+      setDeleted(null)
+    })
+  }
+
+  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
+
   return(
     <SafeAreaView style={styles.chatBox}>
       <View style={styles.topPanel}>
-        {chatStore.activeChat?.friend?.avatar.code ? <Image source={{uri:chatStore.activeChat?.friend?.avatar.code}} style={[styles.avatar, {margin: 5}]}/> : <View style={[styles.avatar, {margin: 5}]}/>}
-        <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
-        <Text style={styles.usertag}>{chatStore.activeChat?.friend?.usertag}
-          {messagesHistory[chatID]?.isTyping 
-          ? <Text style={styles.typing}><Icon.AnimatedPen/>Typing...</Text> 
-          : <></>}
-        </Text>
+        <Pressable onPress={()=>navigation.goBack()} style={{marginRight: 38}}><Icon.Arrow color={stylesData.rightMessage} style={{transform:[{rotate: '180deg'}], margin: 10}}/></Pressable>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          {chatStore.activeChat?.friend?.avatar.code ? <FastImage source={{uri:chatStore.activeChat?.friend?.avatar.code}} style={[styles.avatar, {margin: 5}]}/> : <View style={[styles.avatar, {margin: 5}]}/>}
+          <View>
+            <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
+            <Text style={styles.usertag}>{String(chatStore.activeChat?.friend?.usertag)}
+            </Text>
+          </View>
+        </View>
+        {chatStore.userChats[chatID]?.isTyping ? <Typing/> : <View style={{width: 76.5}}/>}
       </View>
       <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
         <FlatList
           ref={ref}
-          data={messagesHistory[chatID]?.messages || []}
+          data={[...(messagesHistory[chatID]?.messages || [])].reverse()}
+          inverted
           keyExtractor={(item:any) => item._id}
           renderItem={({item:message, index}:any) => {
             const date = new Date(message.createdAt)
             const nextMessage = {
-              date: messagesHistory[chatID]?.messages[index + 1]?.createdAt,
-              samePerson: messagesHistory[chatID]?.messages[index + 1]?.senderID == message.senderID,
-              differentDate: isDifferentDay(message.createdAt, messagesHistory[chatID]?.messages[index + 1]?.createdAt),
-              minutes: differenceInMinutes(message.createdAt, messagesHistory[chatID]?.messages[index + 1]?.createdAt)
+              date: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt,
+              samePerson: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.senderID == message.senderID,
+              differentDate: isDifferentDay(
+                message.createdAt,
+                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
+              ),
+              minutes: differenceInMinutes(
+                message.createdAt,
+                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
+              )
             }
             return(
               <Fragment key={message._id}>
-                <View style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage}>
+                <Pressable style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage} onLongPress={()=>setDeleted(message.senderID == user._id ? message: null)}>
                   {message.type === 'text' ?
                     <View style={message.senderID == user._id ? styles.rightText : styles.leftText}>
                       <Text style={[{color: stylesData.white, fontSize: 15}]}>{typeof message.text.text === 'string' ? message.text.text : ''}</Text>
                       <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{calculateDate(date.toString(), 'time')}</Text>
                     </View> :
                     message.type === 'media' ?
-                      <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]} onPress={()=>setOpenImage({...message.text})}>
-                        <Image source={{uri:(message.text as {format:string; code:string}).code}} style={styles.messageImage}/>
+                      <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0, backgroundColor: '#00000000'}]} onPress={()=>setOpenImage({...message.text})} onLongPress={()=>{setOpenImage({format: '', code: ''});setDeleted(message.senderID == user._id ? message: null)}}>
+                        <FastImage source={{uri:(message.text as {format:string; code:string}).code}} style={styles.messageImage}/>
                       </Pressable> :
                       <View style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]}>
-                        <Pressable onPress={()=>setOpenImage({...message.text})}>
-                          <Image source={{uri:(message.text as {format:string; code:string; text:string}).code}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}/>
+                        <Pressable onPress={()=>setOpenImage({...message.text})} onLongPress={()=>{setOpenImage({format: '', code: ''});setDeleted(message.senderID == user._id ? message: null)}}>
+                          <FastImage source={{uri:(message.text as {format:string; code:string; text:string}).code}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}/>
                         </Pressable>
                         <View style={{padding: 5}}>
                           <Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'left', width: (stylesData.width * 0.5) - 10}]}>{(message.text as {format:string; code:string; text:string}).text}</Text>
                           <Text style={[styles.timeSent, message.senderID == user._id ? {textAlign: 'right'} : {textAlign: 'left'}]}>{calculateDate(date.toString(), 'time')}</Text>
                         </View>
                       </View>}
-                </View>
+                </Pressable>
                 {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? <View style={styles.spacing} /> : <></>}
                 {nextMessage.differentDate ? <View style={styles.date}><View style={styles.line} /><Text style={styles.dateText}>{calculateDate(nextMessage.date, 'date')}</Text><View style={styles.line} /></View> : <></>}
               </Fragment>
@@ -188,7 +211,7 @@ export default function DialogChat({route}:any) {
           visible={true}>
           <Pressable style={styles.modal} onPress={()=>setModal(false)}>
             <View style={styles.conteiner}>
-              <Image source={{uri:image.code}} style={styles.image}/>
+              <FastImage source={{uri:image.code}} style={styles.image} resizeMode={FastImage.resizeMode.contain}/>
               <View style={styles.modalView}>
                 <TextInput 
                   style={styles.inputMessages}
@@ -206,7 +229,25 @@ export default function DialogChat({route}:any) {
         visible={true}>
         <Pressable style={styles.modal} onPress={()=>setOpenImage({format: '', code: ''})}>
           <View style={styles.conteiner}>
-          <Image source={{uri:openImage.code}} style={styles.image}/>
+          <FastImage source={{uri:openImage.code}} style={styles.image} resizeMode={FastImage.resizeMode.contain}/>
+          </View>
+        </Pressable>
+        </Modal>}
+      {deleted &&
+        <Modal
+        animationType="fade"
+        transparent={true}
+        visible={true}>
+        <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setDeleted(null)}>
+          <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
+            <View style={styles.deleteCont}>
+              <Text style={{fontSize: 20, color: '#fff', fontWeight: 'bold', marginBottom: 10}}>Удалить сообщение</Text>
+              <Text style={{fontSize: 18, color: '#fff', marginBottom: 10}}>Вы точно хотите удалить это сообщение?</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                <Text style={{fontSize: 20, color: '#2692E5'}} onPress={()=>setDeleted(null)}>Отмена</Text>
+                <Text style={{fontSize: 20, color: stylesData.error}} onPress={()=>handleRemoveMessage(deleted)}>Удалить</Text>
+              </View>
+            </View>
           </View>
         </Pressable>
         </Modal>}
@@ -223,7 +264,7 @@ const styles = StyleSheet.create({
   topPanel: {
     padding: 10,
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
   },
@@ -242,14 +283,9 @@ const styles = StyleSheet.create({
     color: stylesData.darkGray,
   },
   typing: {
+    color: stylesData.appmessage,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    color: stylesData.white,
-    top: 45,
-    left: 420,
-    opacity: 0.4,
-    fontSize: 13,
   },
   chatContent: {
     display: 'flex',
@@ -371,5 +407,11 @@ const styles = StyleSheet.create({
     height: stylesData.height,
     width: stylesData.width,
     resizeMode: 'contain',
+  },
+  deleteCont: {
+    width: stylesData.width*0.7,
+    backgroundColor: stylesData.accent1,
+    padding: 15,
+    borderRadius: 10,
   },
 })

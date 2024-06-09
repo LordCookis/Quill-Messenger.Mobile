@@ -3,7 +3,7 @@ import { createContext, useEffect, useContext, useState } from "react"
 import Loading from '../components/other/Loading'
 import { fetchLatestMessageAPI } from "../api/message-api"
 import { useNavigation } from '@react-navigation/native'
-import { useChatStore } from '../stores/chat-store'
+import { chat, useChatStore } from '../stores/chat-store'
 import { useMessageStore } from '../stores/messages-store'
 import io, { Socket } from "socket.io-client"
 import { message } from '../stores/messages-store'
@@ -97,6 +97,9 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
     socket.on('removeMessage', (data: message) => {
       messagesStore.removeMessage(data)
     })
+    socket.on('addGroup', (data: chat) => {
+      chatStore.addNewChat(data)
+    })
     socket.on('userDeleted', (data: {userID: string}) => {
       console.log("REMOVE user", data)
       Object.keys(chatStore.userChats).forEach((chatID) => {
@@ -109,6 +112,9 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
     return () => {
       socket.off('newMessage')
       socket.off('removeChat')
+      socket.off('typing')
+      socket.off('addGroup')
+      socket.off('userDeleted')
       socket.off('typing')
     }
   }, [socket, activeChat, Object.keys(chatStore.userChats).length])

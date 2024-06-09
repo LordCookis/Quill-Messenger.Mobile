@@ -8,8 +8,8 @@ import { WarningContext } from '../../lib/warning/warning-context'
 import { useChatStore } from '../../stores/chat-store'
 import { warningHook } from '../../lib/warning/warning-context'
 import { stylesData } from '../../styles/stylesData'
-import { decodeImage } from '../../utils/decodeImage'
-
+import { calculateDate } from '../../utils/calculate-date'
+import FastImage from 'react-native-fast-image'
 
 type MessageData = {
   senderID: string
@@ -48,26 +48,51 @@ export default function Group({group, messagesStore, navigation}:any){
     }
   }, [])
 
+  useEffect(()=>{
+    if(!messagesStore?.messages?.length){return}
+    setMessageData({
+      senderID: messagesStore?.messages[messagesStore?.messages.length-1].senderID,
+      type: messagesStore?.messages[messagesStore?.messages.length-1].type,
+      text: messagesStore?.messages[messagesStore?.messages.length-1].text,
+      time: `${calculateDate(messagesStore?.messages[messagesStore?.messages.length-1].createdAt, 'count')}`
+    })
+  }, [messagesStore])
+
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
   const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
   const Message = () => {
     const renderMessage = () => {
-      const truncateText = (text:string) => { return text.length > 25 ? text.substring(0, 25) + '...' : text }
-      if (messageData?.type === 'text' && typeof messageData.text === 'string') { return messageData.text.length ? truncateText(messageData.text) : "No messages yet..."  }
-      if (messageData?.type === 'media') { return "File" }
-      if (messageData?.type === 'media-text' && typeof messageData.text === 'object' && messageData.text.text) { return messageData.text.text.length ? truncateText(messageData.text.text) : "No messages yet..." }
-      return "No messages yet..."
+      const truncateText = (text: string) => {
+        return (<Text style={{height: 20, color:stylesData.time}}>{text.length > 25 ? text.substring(0, 25) + '...' : text}</Text>) 
+      }
+      if (messageData?.type === 'text' && typeof messageData.text === 'object') {
+        const textContent = messageData.text?.text;
+        return textContent?.length ? truncateText(textContent) : <Text style={{color:stylesData.time}}>No messages yet...</Text>
+      }
+      if (messageData?.type === 'media' && typeof messageData.text === 'object') {
+        return (<FastImage source={{uri: messageData.text?.code}} style={styles.image}/>)
+      }
+      if (messageData?.type === 'media-text' && typeof messageData.text === 'object' && messageData.text.text) {
+        return (<View style={{height: 20, flexDirection: 'row', alignItems: 'center'}}><FastImage source={{uri: messageData.text?.code}} style={styles.image}/><Text style={{color:stylesData.time, marginLeft:5}}>{truncateText(messageData.text.text)}</Text></View>)
+      }
+      return <Text style={{color:stylesData.time}}>No messages yet...</Text>
     }
-    return(
-      <><Text style={styles.sentFromMe}>{messageData.senderID == user._id ? "You: " : ""}</Text>
-      <Text>{renderMessage()}</Text></>
+    return (
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <Text style={styles.sentFromMe}>{messageData.senderID == user._id ? 'You: ' : ''}</Text>
+        {messageData?.type === 'media' && typeof messageData.text === 'object' ? (
+          <View>{renderMessage()}</View>
+        ) : (
+          <Text>{renderMessage()}</Text>
+        )}
+      </View>
     )
   }
 
   return(
     <Pressable onPress={selectGroup}>
     <View style={styles.messageBlock}>
-    {group.image?.code ? <Image style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:group?.image.code}}/> : <></>}
+    {group.image?.code ? <FastImage style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:group?.image.code}}/> : <></>}
       <View style={styles.messageContent}>
         <View style={styles.top}>
           <Text style={styles.name}>{group?.name}</Text>
@@ -91,9 +116,10 @@ export default function Group({group, messagesStore, navigation}:any){
 
 const styles = StyleSheet.create({
   messageBlock: {
+    height: stylesData.height*0.075,
     width: stylesData.width / 1.1,
     paddingVertical: 10,
-    marginVertical: 10,
+    marginVertical: 5,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -140,5 +166,10 @@ const styles = StyleSheet.create({
   },
   draft: {
     color: '#e73f3f',
-  }
+  },
+  image: {
+    height: 20,
+    width: 20,
+    borderRadius: 5,
+  },
 })

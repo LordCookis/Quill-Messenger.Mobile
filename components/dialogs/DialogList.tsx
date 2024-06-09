@@ -86,8 +86,8 @@ export default function DialogList({ navigation }: any) {
             placeholderTextColor={stylesData.gray}
           /> :
           <Pressable onPress={() => setFind(true)}><Text style={styles.chatHeader}>Messages</Text></Pressable>}
-        <Pressable onPress={createNewChat}>
-          <Icon.AddUser />
+        <Pressable onPress={search.length < 3 ? ()=>{setSearch('');setFind(false)} : createNewChat}>
+          <Icon.AddUser style={{transform:[{rotate: search.length < 3 ? '45deg' : '0deg'}]}}/>
         </Pressable>
       </View>
       <View style={styles.block}>
