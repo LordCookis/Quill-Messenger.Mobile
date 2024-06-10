@@ -72,16 +72,20 @@ export default function Account(){
         <TextInput
           style={styles.dataInput}
           placeholder='Введите старый пароль'
-          placeholderTextColor={stylesData.gray}/>
+          placeholderTextColor={stylesData.gray}
+          secureTextEntry={true}/>
         <TextInput
           style={styles.dataInput}
           placeholder='Введите новый пароль'
-          placeholderTextColor={stylesData.gray}/>
+          placeholderTextColor={stylesData.gray}
+          secureTextEntry={true}/>
         <TextInput
           style={styles.dataInput}
           placeholder='Подтвердите новый пароль'
-          placeholderTextColor={stylesData.gray}/>
+          placeholderTextColor={stylesData.gray}
+          secureTextEntry={true}/>
         <Pressable style={styles.saveButton} onPress={update}><Text style={styles.saveText}>Сохранить</Text></Pressable>
+        <Pressable style={{...styles.saveButton, backgroundColor: '#710707'}} onPress={update}><Text style={styles.saveText}>Удалить аккаунт</Text></Pressable>
       </View>
     </View>
   )

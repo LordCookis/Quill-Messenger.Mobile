@@ -59,28 +59,28 @@ export default function Dialog({chat, messagesStore, navigation}:any){
     })
   }, [messagesStore])
 
-  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
-  const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
+  const Typing = () => <View style={styles.typing}><Icon.AnimatedPen/><Text style={{color:stylesData.time, fontFamily: 'monospace'}}> Пишет...</Text></View> 
+  const Draft = () => <><Text style={styles.draft}>{"Черновик: "}</Text>{messagesStore?.inputMessage}</>
   const Message = () => {
     const renderMessage = () => {
       const truncateText = (text: string) => {
-        return (<Text style={{height: 20, color:stylesData.time}}>{text.length > 25 ? text.substring(0, 25) + '...' : text}</Text>) 
+        return (<Text style={{color:stylesData.time, fontFamily: 'monospace'}}>{text.length > 25 ? text.substring(0, 25) + '...' : text}</Text>) 
       }
       if (messageData?.type === 'text' && typeof messageData.text === 'object') {
         const textContent = messageData.text?.text;
-        return textContent?.length ? truncateText(textContent) : <Text style={{color:stylesData.time}}>No messages yet...</Text>
+        return textContent?.length ? truncateText(textContent) : <Text style={{color:stylesData.time, fontFamily: 'monospace'}}>Сообщений пока нет...</Text>
       }
       if (messageData?.type === 'media' && typeof messageData.text === 'object') {
         return (<FastImage source={{uri: messageData.text?.code}} style={styles.image}/>)
       }
       if (messageData?.type === 'media-text' && typeof messageData.text === 'object' && messageData.text.text) {
-        return (<View style={{height: 20, flexDirection: 'row', alignItems: 'center'}}><FastImage source={{uri: messageData.text?.code}} style={styles.image}/><Text style={{color:stylesData.time, marginLeft:5}}>{truncateText(messageData.text.text)}</Text></View>)
+        return (<View style={{height: 20, flexDirection: 'row', alignItems: 'center'}}><FastImage source={{uri: messageData.text?.code}} style={styles.image}/><Text style={{color:stylesData.time, marginLeft:5, fontFamily: 'monospace'}}>{truncateText(messageData.text.text)}</Text></View>)
       }
-      return <Text style={{color:stylesData.time}}>No messages yet...</Text>
+      return <Text style={{color:stylesData.time, fontFamily: 'monospace',}}>Сообщений пока нет...</Text>
     }
     return (
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text style={styles.sentFromMe}>{messageData.senderID == user._id ? 'You: ' : ''}</Text>
+        <Text style={{...styles.sentFromMe, fontFamily: 'monospace'}}>{messageData.senderID == user._id ? 'Вы: ' : ''}</Text>
         {messageData?.type === 'media' && typeof messageData.text === 'object' ? (
           <View>{renderMessage()}</View>
         ) : (
@@ -100,14 +100,12 @@ export default function Dialog({chat, messagesStore, navigation}:any){
           <Text style={styles.time}>{messageData?.time?.length ? messageData.time : ""}</Text>
         </View>
         <View style={styles.bottom}>
-          <Text style={styles.message}>
-            {chat?.isTyping ?
-              <Typing/> :
-              chat?.inputMessage?.length && activeChat.chat._id != chat._id ?
-                <Draft/> :
-                <Message/>
-            }
-          </Text>
+          {chat?.isTyping ?
+            <Typing/> :
+            chat?.inputMessage?.length && activeChat.chat._id != chat._id ?
+              <Draft/> :
+              <Message/>
+          }
         </View>
       </View>
     </View>
@@ -140,24 +138,27 @@ const styles = StyleSheet.create({
   },
   name: {
     color: stylesData.white,
+    fontFamily: 'monospace',
   },
   time: {
     color: stylesData.time,
+    fontFamily: 'monospace',
   },
   bottom: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   message: {
-    color: stylesData.time,
+    //color: stylesData.time,
   },
   sentFromMe: {
     color: stylesData.appmessage,
   },
   typing: {
     color: stylesData.appmessage,
-    position: 'absolute',
+    flexDirection: 'row',
     display: 'flex',
     alignItems: 'center',
     marginRight: 4,

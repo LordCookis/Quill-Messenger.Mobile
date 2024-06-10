@@ -74,7 +74,7 @@ export default function DialogList({ navigation }: any) {
     </Animated.View>
     <View style={styles.chatlist}>
       <View style={styles.searchBlock}>
-        <Pressable onPress={openMenu}>
+        <Pressable onPress={openMenu} style={{margin: 10}}>
           <Icon.Menu/>
         </Pressable>
         {find ?
@@ -82,16 +82,16 @@ export default function DialogList({ navigation }: any) {
             style={styles.searchInput}
             value={search}
             onChangeText={(e) => setRawInput(e)}
-            placeholder="Search by tag"
+            placeholder="Поиск по тэгу"
             placeholderTextColor={stylesData.gray}
           /> :
-          <Pressable onPress={() => setFind(true)}><Text style={styles.chatHeader}>Messages</Text></Pressable>}
+          <Text style={styles.chatHeader} onPress={() => setFind(true)}>Сообщения</Text>}
         <Pressable onPress={search.length < 3 ? ()=>{setSearch('');setFind(false)} : createNewChat}>
           <Icon.AddUser style={{transform:[{rotate: search.length < 3 ? '45deg' : '0deg'}]}}/>
         </Pressable>
       </View>
       <View style={styles.block}>
-        <Text style={styles.legend}><Icon.Letter /> ALL MESSAGES</Text>
+        <Text style={styles.legend}><Icon.Letter /> ВСЕ СООБЩЕНИЯ</Text>
         <View style={styles.type}>
           <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={() => setFocus(false)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
           <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={() => setFocus(true)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     color: stylesData.white,
     backgroundColor: stylesData.accent1,
+    fontFamily: 'monospace',
   },
   block: {
     flexDirection: 'column',

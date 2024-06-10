@@ -7,7 +7,7 @@ export default function Loading(){
   return(
   <View style={styles.loading}>
     <Text style={styles.loadingIco}><Icon.Loading/></Text>
-    <Text style={styles.loadingText}>Connecting to the server... Please wait</Text>
+    <Text style={styles.loadingText}>Подключение к серверу... Пожалуйста подождите</Text>
   </View>
   )
 }

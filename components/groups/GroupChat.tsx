@@ -195,7 +195,7 @@ export default function GroupChat({navigation, route}:any) {
               </Fragment>
             )
           }}
-          ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>The chat is empty!</Text>}
+          ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>Чат пустой!</Text>}
           contentContainerStyle={{alignItems: 'flex-end', padding: 5}}
           overScrollMode="never"
           showsVerticalScrollIndicator={false}

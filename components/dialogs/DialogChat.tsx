@@ -127,7 +127,7 @@ export default function DialogChat({navigation, route}:any) {
     })
   }
 
-  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
+  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Пишет...</Text> 
 
   return(
     <SafeAreaView style={styles.chatBox}>
@@ -141,7 +141,7 @@ export default function DialogChat({navigation, route}:any) {
             </Text>
           </View>
         </View>
-        {chatStore.userChats[chatID]?.isTyping ? <Typing/> : <View style={{width: 76.5}}/>}
+        {chatStore.userChats[chatID]?.isTyping ? <Typing/> : <View style={{width: 79}}/>}
       </View>
       <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
         <FlatList
@@ -190,7 +190,7 @@ export default function DialogChat({navigation, route}:any) {
               </Fragment>
             )
           }}
-          ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>The chat is empty!</Text>}
+          ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>Чат пустой!</Text>}
           contentContainerStyle={{alignItems: 'flex-end', padding: 5}}
           overScrollMode="never"
           showsVerticalScrollIndicator={false}

@@ -58,7 +58,7 @@ export default function Group({group, messagesStore, navigation}:any){
     })
   }, [messagesStore])
 
-  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
+  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Печатание...</Text> 
   const Draft = () => <><Text style={styles.draft}>{"Draft: "}</Text>{messagesStore?.inputMessage}</>
   const Message = () => {
     const renderMessage = () => {
@@ -67,19 +67,19 @@ export default function Group({group, messagesStore, navigation}:any){
       }
       if (messageData?.type === 'text' && typeof messageData.text === 'object') {
         const textContent = messageData.text?.text;
-        return textContent?.length ? truncateText(textContent) : <Text style={{color:stylesData.time}}>No messages yet...</Text>
+        return textContent?.length ? truncateText(textContent) : <Text style={{color:stylesData.time, fontFamily: 'monospace',}}>Сообщений пока нет...</Text>
       }
       if (messageData?.type === 'media' && typeof messageData.text === 'object') {
         return (<FastImage source={{uri: messageData.text?.code}} style={styles.image}/>)
       }
       if (messageData?.type === 'media-text' && typeof messageData.text === 'object' && messageData.text.text) {
-        return (<View style={{height: 20, flexDirection: 'row', alignItems: 'center'}}><FastImage source={{uri: messageData.text?.code}} style={styles.image}/><Text style={{color:stylesData.time, marginLeft:5}}>{truncateText(messageData.text.text)}</Text></View>)
+        return (<View style={{height: 20, flexDirection: 'row', alignItems: 'center'}}><FastImage source={{uri: messageData.text?.code}} style={styles.image}/><Text style={{color:stylesData.time, marginLeft:5, fontFamily: 'monospace',}}>{truncateText(messageData.text.text)}</Text></View>)
       }
-      return <Text style={{color:stylesData.time}}>No messages yet...</Text>
+      return <Text style={{color:stylesData.time, fontFamily: 'monospace',}}>Сообщений пока нет...</Text>
     }
     return (
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <Text style={styles.sentFromMe}>{messageData.senderID == user._id ? 'You: ' : ''}</Text>
+        <Text style={styles.sentFromMe}>{messageData.senderID == user._id ? 'Вы: ' : ''}</Text>
         {messageData?.type === 'media' && typeof messageData.text === 'object' ? (
           <View>{renderMessage()}</View>
         ) : (
@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     display: 'flex',
     alignItems: 'center',
+    fontFamily: 'monospace',
     marginRight: 4,
   },
   draft: {

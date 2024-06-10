@@ -66,25 +66,25 @@ export default function Login({navigation}:any) {
           <View style={styles.titleView}>
             <Icon.Quill/><Text style={styles.loginTitle}> Quill Messenger</Text>
           </View>
-          <Text style={[{margin: 5, color: '#ffffff', fontSize: 18, fontWeight: 'bold',}]}>Welcome, User!</Text>
+          <Text style={[{margin: 5, color: '#ffffff', fontSize: 18, fontWeight: 'bold',}]}>Добро пожаловать!</Text>
           <Text style={styles.description}>
-            We're glad to see you here! {'\n'}
-            Log In or create a new account!{'\n'}
-            Other people are waiting for you!
+            Мы рады видеть вас здесь! {'\n'}
+            Войдите или создайте новый аккаунт!{'\n'}
+            Другие пользователи уже ждут вас!
           </Text>
         </View>
         <TextInput
           onChangeText={(e)=>setRawInput(e)}
           value={userInputs.usertag}
           style={[styles.loginInput, {backgroundColor: inputFocus === 1 ? stylesData.messageInputHover : stylesData.loginInput}]}
-          placeholder='User Tag'
+          placeholder='Тэг'
           placeholderTextColor={'#cccccc'}
           onFocus={()=>handleFocus(1)}/>
         <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, password: inputFilter(e)})}
           value={userInputs.password}
           style={[styles.loginInput, {backgroundColor: inputFocus === 2 ? stylesData.messageInputHover : stylesData.loginInput}]}
-          placeholder='Password'
+          placeholder='Пароль'
           placeholderTextColor={'#cccccc'}
           secureTextEntry={true}
           onFocus={()=>handleFocus(2)}/>
@@ -92,7 +92,7 @@ export default function Login({navigation}:any) {
           onChangeText={(e)=>setUserInputs({...userInputs, confirmPassword: inputFilter(e)})}
           value={userInputs.confirmPassword}
           style={[styles.loginInput, {backgroundColor: inputFocus === 3 ? stylesData.messageInputHover : stylesData.loginInput}]}
-          placeholder='Confirm password'
+          placeholder='Подтвердите пароль'
           placeholderTextColor={'#cccccc'}
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
@@ -101,14 +101,14 @@ export default function Login({navigation}:any) {
           onPress={tab ? registerNewAccount : loginAccount}
           style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}
           disabled={!userInputs.usertag || !userInputs.password.length}
-        >{tab ? "Register" : "Login"}</Text>
-        <Text onPress={()=>setTab(!tab)} style={styles.tabButton}>{!tab ? "I don't have an account!" : "I have an account!"}</Text>
+        >{tab ? "Зарегистрироваться" : "Войти"}</Text>
+        <Text onPress={()=>setTab(!tab)} style={styles.tabButton}>{!tab ? "У меня нет аккаунта!" : "У меня есть аккаунт!"}</Text>
       </View>
       {!tab || <View>
-        {userInputs.usertag.length < 3 ? <Text style={styles.warningLabels}>* Usertag must be longer than 3 characters!</Text> : <></>}
-        {userInputs.usertag.length > 30 ? <Text  style={styles.warningLabels}>* Usertag must be no more than 30 characters long!</Text> : <></>}
-        {userInputs.password.length < 8 ? <Text  style={styles.warningLabels}>* Password must be longer than 8 characters!</Text> : <></>}
-        {userInputs.password !== userInputs.confirmPassword ? <Text style={styles.warningLabels}>* Passwords do not match!</Text> : <></>}
+        {userInputs.usertag.length < 3 ? <Text style={styles.warningLabels}>* Ваш тэг должен быть длинее 3-х символов!</Text> : <></>}
+        {userInputs.usertag.length > 30 ? <Text  style={styles.warningLabels}>* Ваш тэг должен быть меньше 30-ти символов!</Text> : <></>}
+        {userInputs.password.length < 8 ? <Text  style={styles.warningLabels}>* Ваш пароль должен быть длиннее 8 символов!</Text> : <></>}
+        {userInputs.password !== userInputs.confirmPassword ? <Text style={styles.warningLabels}>* Пароли не совподают!</Text> : <></>}
       </View>}
     </View>
   )
@@ -194,10 +194,11 @@ const styles = StyleSheet.create({
   },
   description: {
     color: stylesData.white,
+    fontFamily: 'monospace',
     fontSize: 15,
   },
   warningLabels: {
-    maxWidth: 300,
+    maxWidth: 370,
     fontFamily: 'monospace',
     fontSize: 13,
     color: stylesData.error,

@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: '#ffffff',
     fontSize: 25,
+    fontFamily: 'monospace',
   },
   member: {
     width: stylesData.width * 0.95,
@@ -162,10 +163,12 @@ const styles = StyleSheet.create({
   name: {
     color: '#ffffff',
     fontSize: 20,
+    fontFamily: 'monospace',
   },
   tag: {
     color: '#808080',
     fontSize: 15,
+    fontFamily: 'monospace',
   },
   create: {
     padding: 10,

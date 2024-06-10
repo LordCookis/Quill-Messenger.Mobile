@@ -37,10 +37,10 @@ export default function Menu({navigation, closeMenu}:any){
             </View>
           </View>
         <View style={styles.buttons}>
-          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Аккаунт</Text></Pressable>
-          <Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.Settings/><Text style={styles.buttonText}> Создать группу</Text></Pressable>
-          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Испытать удачу</Text></Pressable>
-          <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={{color: 'coral'}}> Выход</Text></Pressable>
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Settings/><Text style={styles.buttonText}> Настройки</Text></Pressable>
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('GroupCreat')}><Icon.AddGroup/><Text style={styles.buttonText}> Создать группу</Text></Pressable>
+          <Pressable style={styles.button} onPress={()=>navigation.navigate('Account')}><Icon.Discover/><Text style={styles.buttonText}> Испытать удачу</Text></Pressable>
+          <Pressable style={styles.button} onPress={logout}><Icon.Logout/><Text style={{color: 'coral', fontFamily: 'monospace',}}> Выход</Text></Pressable>
         </View>
       </View>
       <Pressable style={styles.back} onPress={closeMenu}></Pressable>
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
+    fontFamily: 'monospace',
   },
   userData: {
     marginBottom: 10,
@@ -92,10 +93,12 @@ const styles = StyleSheet.create({
   displayedName: {
     fontSize: 25,
     color: stylesData.white,
+    fontFamily: 'monospace',
   },
   usertag: {
     fontSize: 20,
     color: stylesData.gray,
+    fontFamily: 'monospace',
   },
   button: {
     width: '90%',
@@ -107,9 +110,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
+    fontFamily: 'monospace',
   },
   buttonText: {
     color: stylesData.white,
+    fontFamily: 'monospace',
   },
   linkUserImage: {
     marginRight: 10,
