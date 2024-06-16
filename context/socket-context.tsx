@@ -33,7 +33,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   }, [navigation])
 
   useEffect(()=>{
-    const newSocket = io(`ws://${'26.38.55.97:4000'}/?_id=${_id}`, {
+    const newSocket = io(`ws://${user.host}/?_id=${_id}`, {
       reconnection: true,
       reconnectionDelay: 2000,
       reconnectionAttempts: 100
@@ -68,11 +68,9 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
   useEffect(()=>{
     if(!socket?.connected){return}
     socket.on('newMessage', (data: message) => {
-      if(activeChat?.chat?._id != data.chatID){
-        console.log("ADDING TO COUNTER")
-        console.log(data.chatID)
-        counterStore.addCounter({chatID: data.chatID})
-      }
+      console.log("ADDING TO COUNTER")
+      console.log(data.chatID)
+      counterStore.addCounter(data.chatID)
       if(!chatStore?.userChats[data.chatID]?._id){
         chatStore.addNewChat({
           _id: data.chatID,
@@ -91,7 +89,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
     })
     socket.on('removeChat', (data: {chatID: string, recipientID: string}) => {
       console.log("REMOVE CHsAT", data)
-      counterStore.resetCounter({chatID: data.chatID})
+      counterStore?.counters[data.chatID]?.counter > 0 && counterStore.decCounter(data.chatID)
       chatStore.removeChat({chatID: data.chatID})
     })
     socket.on('removeMessage', (data: message) => {
@@ -104,7 +102,7 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
       console.log("REMOVE user", data)
       Object.keys(chatStore.userChats).forEach((chatID) => {
         if(chatStore.userChats[chatID]?.members.includes(data.userID)){
-          counterStore.resetCounter({chatID: chatID})
+          counterStore.resetCounter(chatID)
           chatStore.removeChat({chatID: chatID})
         }
       })

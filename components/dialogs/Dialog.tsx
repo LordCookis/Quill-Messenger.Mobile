@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, Image, Text, StyleSheet, Pressable } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Modal } from 'react-native'
 import { useEffect, useState, useContext } from 'react'
 import Icon from '../../assets/Icons'
 import { fetchUserByIdAPI } from '../../api/user-api'
@@ -14,6 +14,9 @@ import { warningHook } from '../../lib/warning/warning-context'
 import { calculateDate } from '../../utils/calculate-date'
 import { stylesData } from '../../styles/stylesData'
 import FastImage from 'react-native-fast-image'
+import { useCounterStore } from '../../stores/counter-store'
+import { deleteGroupChatAPI } from '../../api/group-api'
+import { deleteChatAPI } from '../../api/chat-api'
 
 type MessageData = {
   senderID: string
@@ -33,10 +36,15 @@ export default function Dialog({chat, messagesStore, navigation}:any){
     type: "",
     text: "",
     time: "",
-  });
+  })
+  const counterStore = useCounterStore()
+  const [deleteId, setDeleteId] = useState<string>("")
+  const [deleted, setDeleted] = useState(false)
+  const chatStore = useChatStore()
 
   const selectChat = () => {
     setActiveChat({chat: chat, friend: opponentData})
+    counterStore.resetCounter(chat._id)
     navigation.navigate('DialogChat', {chatID: chat._id})
   }
 
@@ -44,7 +52,7 @@ export default function Dialog({chat, messagesStore, navigation}:any){
     if(opponentData || !socket?.connected){return}
     const userID = chat?.members[0] != user._id ? chat.members[0] : chat.members[1]
     tryCatch(async()=>{
-      const result = await netRequestHandler(()=>fetchUserByIdAPI(userID), warning)
+      const result = await netRequestHandler(()=>fetchUserByIdAPI(userID, user.host), warning)
       setOpponentData(result.data)
     })
   }, [opponentData, socket?.connected])
@@ -90,8 +98,18 @@ export default function Dialog({chat, messagesStore, navigation}:any){
     )
   }
 
+  const deleteChat = async(chatInfo: {_id: string, members: string[], type: 'group' | undefined}, opponentData: any) => {
+    if('image' in chatInfo){ await deleteGroupChatAPI(deleteId, user.host) }
+    else { await deleteChatAPI(deleteId, user.host) }
+    socket.emit('removeChat', {chatID: deleteId, recipientID: chatInfo.members})
+    counterStore.resetCounter(deleteId)
+    if(chatStore.activeChat.chat._id == deleteId){navigation.navigate('DialogList')}
+    chatStore.removeChat({chatID: deleteId})
+    setDeleteId("")
+  }
+
   return(
-    <Pressable onPress={selectChat}>
+    <Pressable onPress={selectChat} onLongPress={()=>{setDeleted(true), setDeleteId(chat._id)}}>
     <View style={styles.messageBlock}>
     {opponentData?.avatar.code ? <FastImage style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:opponentData?.avatar.code}}/> : <View style={[{height: 40, width: 40, borderRadius: 50}]}/>}
       <View style={styles.messageContent}>
@@ -106,9 +124,28 @@ export default function Dialog({chat, messagesStore, navigation}:any){
               <Draft/> :
               <Message/>
           }
+          {counterStore?.counters[chat._id]?.counter ? <Text style={styles.messagesCounter}>{counterStore.counters[chat._id].counter}</Text> : null}
         </View>
       </View>
     </View>
+    {deleted &&
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={true}>
+        <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setDeleted(false)}>
+          <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
+            <View style={styles.deleteCont}>
+              <Text style={{fontSize: 20, color: '#fff', fontWeight: 'bold', marginBottom: 10}}>Удалить чат {opponentData.displayedName}?</Text>
+              <Text style={{fontSize: 18, color: '#fff', marginBottom: 10}}>Вы уверены, что хотите удалить этот чат? Этот чат невозможно будет восстановить!</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                <Text style={{fontSize: 20, color: '#2692E5'}} onPress={()=>setDeleted(false)}>Отмена</Text>
+                <Text style={{fontSize: 20, color: stylesData.error}} onPress={()=>deleteChat(chat, opponentData)}>Удалить</Text>
+              </View>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>}
     </Pressable>
   )
 }
@@ -170,5 +207,45 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
     borderRadius: 5,
+  },
+  messagesCounter: {
+    height: 20,
+    width: 20,
+    fontFamily: 'monospace',
+    backgroundColor: stylesData.appmessage,
+    borderRadius: 50,
+    color: '#000',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    fontSize: 12,
+  },
+  modal: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 1)',
+  },
+  conteiner: {
+    height: '100%',
+    paddingVertical: 10,
+  },
+  modalView: {
+    marginBottom: 10,
+    display: 'flex',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    position: 'absolute',
+    zIndex: 9999,
+  },
+  deleteCont: {
+    width: stylesData.width*0.75,
+    backgroundColor: stylesData.accent1,
+    padding: 15,
+    borderRadius: 10,
   },
 })

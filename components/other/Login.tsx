@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, TextInput } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Alert } from 'react-native'
 import { useContext, useEffect, useState } from "react"
 import Icon from "../../assets/Icons"
 import { loginAPI, registerAPI } from "../../api/user-api"
@@ -26,6 +26,7 @@ export default function Login({navigation}:any) {
   const [inputFocus, setInputFocus] = useState<number>(0)
   const [rawInput, setRawInput] = useState<string>('')
   const user = useAccountStore()
+  const [gay, setGay] = useState<any>('Я гей')
 
   useEffect(() => {
     setUserInputs({...userInputs, usertag: inputFilter(rawInput)})
@@ -44,17 +45,21 @@ export default function Login({navigation}:any) {
   }
 
   const registerNewAccount = async() => {
-    tryCatch(async()=>{
-      const result = await netRequestHandler(()=>registerAPI(userInputs, userInputs.host), warning)
+    try {
+      const result = await registerAPI(userInputs, userInputs.host)
       passLoginScreen({...result.data, host: userInputs.host})
-    })
+    } catch(err:any) { console.log('=(') }
   }
 
   const loginAccount = async() => {
-    tryCatch(async()=>{
-      const result = await netRequestHandler(()=>loginAPI(userInputs, userInputs.host), warning)
-      passLoginScreen({...result.data, host: userInputs.host})
-    })
+    try {
+      const result = await loginAPI(userInputs, userInputs.host)
+      if (result.status !== 200) { setGay(result.message) }
+      else { passLoginScreen({...result.data, host: userInputs.host}) }
+    } catch(err:any) { 
+      console.log(err)
+      setGay(err)
+    }
   }
 
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
@@ -97,6 +102,13 @@ export default function Login({navigation}:any) {
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
         />}
+        <TextInput
+          onChangeText={(e)=>setUserInputs({...userInputs, host: e})}
+          value={userInputs.host}
+          style={[styles.loginInput, {backgroundColor: inputFocus === 4 ? stylesData.messageInputHover : stylesData.loginInput}]}
+          placeholder='Хост'
+          placeholderTextColor={'#cccccc'}
+          onFocus={()=>handleFocus(4)}/>
         <Text
           onPress={tab ? registerNewAccount : loginAccount}
           style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}
@@ -106,10 +118,11 @@ export default function Login({navigation}:any) {
       </View>
       {!tab || <View>
         {userInputs.usertag.length < 3 ? <Text style={styles.warningLabels}>* Ваш тэг должен быть длинее 3-х символов!</Text> : <></>}
-        {userInputs.usertag.length > 30 ? <Text  style={styles.warningLabels}>* Ваш тэг должен быть меньше 30-ти символов!</Text> : <></>}
-        {userInputs.password.length < 8 ? <Text  style={styles.warningLabels}>* Ваш пароль должен быть длиннее 8 символов!</Text> : <></>}
+        {userInputs.usertag.length > 30 ? <Text style={styles.warningLabels}>* Ваш тэг должен быть меньше 30-ти символов!</Text> : <></>}
+        {userInputs.password.length < 8 ? <Text style={styles.warningLabels}>* Ваш пароль должен быть длиннее 8 символов!</Text> : <></>}
         {userInputs.password !== userInputs.confirmPassword ? <Text style={styles.warningLabels}>* Пароли не совподают!</Text> : <></>}
       </View>}
+      <Text style={styles.warningLabels}>{gay}</Text>
     </View>
   )
 }

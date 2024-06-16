@@ -19,6 +19,7 @@ import { stylesData } from '../../styles/stylesData'
 import ImagePicker from 'react-native-image-crop-picker'
 import { useUserCache } from '../../stores/user-cache'
 import FastImage from 'react-native-fast-image'
+import { useCounterStore } from '../../stores/counter-store'
 
 type messageData = {
   message: message,
@@ -48,10 +49,16 @@ export default function GroupChat({navigation, route}:any) {
   const [modal, setModal] = useState<boolean>(false)
   const [image, setImage] = useState<any>({format: '', code: ''})
   const [openImage, setOpenImage] = useState<any>({format: '', code: ''})
+  const [deleted, setDeleted] = useState<any>(null)
+  const [openTab, setOpenTab] = useState<boolean>(false)
+  const counterStore = useCounterStore()
 
-  //useEffect(() => {
-  //  if (ref.current) { ref.current.scrollToEnd({animated: false}) }
-  //}, [messagesHistory[chatID]?.messages])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (ref.current) { ref.current.scrollToEnd({animated: false}) }
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [messagesHistory[chatID]?.messages])
 
   const sendNewMessage = async(type:any) => {
     if((!chatStore.userChats[chatID]?.inputMessage && !image.format) || !socket){return}
@@ -96,7 +103,7 @@ export default function GroupChat({navigation, route}:any) {
   }
 
   useEffect(() => {
-    return() => clearTimeout(typingTimer) // Clear the timeout if the component is unmounted
+    return() => clearTimeout(typingTimer)
   }, [typingTimer])
 
   const pickMedia = async() => {
@@ -116,41 +123,39 @@ export default function GroupChat({navigation, route}:any) {
     } catch (err:any) { console.log('Ошибка при выборе файла', err.message) }
   }
 
-  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Typing...</Text> 
+  const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Пишет...</Text> 
 
   return(
     <SafeAreaView style={styles.chatBox}>
       <View style={styles.topPanel}>
-        <Pressable onPress={()=>navigation.goBack()} style={{marginRight: 38}}><Icon.Arrow color={stylesData.rightMessage} style={{transform:[{rotate: '180deg'}], margin: 10}}/></Pressable>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <Pressable onPress={()=>{navigation.goBack();counterStore.resetCounter(chatID)}} style={{marginRight: 38}}><Icon.Arrow color={stylesData.rightMessage} style={{transform:[{rotate: '180deg'}], margin: 10}}/></Pressable>
+        <Pressable style={{flexDirection: 'row', alignItems: 'center'}} onPress={()=>setOpenTab(true)}>
           {chatStore.activeChat?.friend?.avatar ? <Image source={{uri:chatStore.activeChat?.friend?.avatar}} style={[styles.avatar, {margin: 5}]}/> : <></>}
           <View>
             <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
             <Text style={styles.usertag}>{chatStore.activeChat?.friend?.usertag}</Text>
           </View>
-        </View>
+        </Pressable>
         {chatStore.userChats[chatID]?.isTyping ? <Typing/> : <View style={{width: 76.5}}/>}
       </View>
       <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
         <FlatList
           ref={ref}
-          data={[...(messagesHistory[chatID]?.messages || [])].reverse()}
-          inverted
+          overScrollMode="never"
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          data={messagesHistory[chatID]?.messages || []}
           keyExtractor={(item:any) => item._id}
           renderItem={({item:message, index}:any) => {
-            if (!userCache.userCache[message.senderID]) { userCache.addUserCache(message.senderID) }
+            if (!Boolean(userCache.userCache[message.senderID]?._id)) { userCache.addUserCache(message.senderID, user.host) }
             const date = new Date(message.createdAt)
             const nextMessage = {
-              date: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt,
-              samePerson: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.senderID == message.senderID,
-              differentDate: isDifferentDay(
-                message.createdAt,
-                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
-              ),
-              minutes: differenceInMinutes(
-                message.createdAt,
-                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
-              )
+              date: messagesHistory[chatID]?.messages[index+1]?.createdAt,
+              samePerson: messagesHistory[chatID]?.messages[index+1]?.senderID == message.senderID,
+              differentDate: isDifferentDay(message.createdAt, messagesHistory[chatID]?.messages[index+1]?.createdAt),
+              minutes: differenceInMinutes(message.createdAt, messagesHistory[chatID]?.messages[index+1]?.createdAt),
+              doesNextExist: messagesHistory[chatID]?.messages[index+1] ? true : false
             }
             return(
               <Fragment key={message._id}>
@@ -196,10 +201,7 @@ export default function GroupChat({navigation, route}:any) {
             )
           }}
           ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>Чат пустой!</Text>}
-          contentContainerStyle={{alignItems: 'flex-end', padding: 5}}
-          overScrollMode="never"
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}/>
+          contentContainerStyle={{alignItems: 'flex-end', padding: 5}}/>
         <View style={styles.viewMessages}>
           <Pressable onPress={pickMedia}><Icon.Paperclip color={stylesData.rightMessage}/></Pressable>
           <TextInput 
@@ -237,6 +239,40 @@ export default function GroupChat({navigation, route}:any) {
           <Image source={{uri:openImage.code}} style={styles.image}/>
           </View>
         </Pressable>
+        </Modal>}
+      {openTab &&
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={true}
+          onRequestClose={() => setOpenTab(false)}>
+          <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setOpenTab(false)}>
+            <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
+              <View style={styles.topInfo}>
+                <FastImage source={{uri:chatStore.activeChat?.friend?.avatar}} style={styles.topImage} resizeMode={FastImage.resizeMode.contain}/>
+                <Text style={{...styles.topText, fontSize: 18}}>{chatStore.activeChat?.friend?.displayedName}</Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', width: '100%'}}><Icon.User/><Text style={{...styles.topText, marginLeft: 5}}>{chatStore.activeChat?.friend?.usertag}</Text></View>
+                <FlatList
+                  overScrollMode="never"
+                  showsVerticalScrollIndicator={false}
+                  showsHorizontalScrollIndicator={false}
+                  data={chatStore.activeChat.chat.members}
+                  keyExtractor={(item:any) => item}
+                  renderItem={({item, index}:any) => {
+                    if (!Boolean(userCache.userCache[item]?._id)) { userCache.addUserCache(item, user.host) }
+                    return(
+                      <View key={item} style={{flexDirection: 'row', width: stylesData.width*0.7, justifyContent: 'flex-start', alignItems: 'center'}}>
+                        <FastImage source={{uri:userCache.userCache[item]?.avatar.code}} style={[{height: stylesData.height*0.05, width: stylesData.height*0.05, margin: 5, borderRadius: 50}]}/>
+                        <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                          <Text style={{marginLeft: 5, fontFamily: 'monospace', color: '#ccc', textAlign: 'left', width: '100%'}}>{userCache.userCache[item]?.displayedName}</Text>
+                          <Text style={{marginLeft: 5, fontFamily: 'monospace', color: stylesData.time, textAlign: 'left', width: '100%'}}>{userCache.userCache[item]?.usertag}</Text>
+                        </View>
+                      </View>
+                    )
+                  }}/>
+              </View>
+            </View>
+          </Pressable>
         </Modal>}
     </SafeAreaView>
   )
@@ -310,6 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: stylesData.rightMessage,
   },
   leftText: {
+    maxWidth: stylesData.width-70,
     padding: 5,
     margin: 2,
     display: 'flex',
@@ -399,5 +436,24 @@ const styles = StyleSheet.create({
     marginLeft: -10,
     flexDirection: 'row',
     alignItems: 'flex-end',
+  },
+  topInfo: {
+    padding: 10,
+    maxHeight: stylesData.height*0.55,
+    width: stylesData.width*0.7,
+    backgroundColor: stylesData.accent1,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topImage: {
+    height: stylesData.height*0.135,
+    width: stylesData.height*0.135,
+    resizeMode: 'contain',
+    borderRadius: 100,
+  },
+  topText: {
+    fontFamily: 'monospace',
+    color: '#ccc'
   },
 })

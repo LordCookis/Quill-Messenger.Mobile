@@ -1,4 +1,4 @@
-import { View, Image, Text, StyleSheet, Pressable } from 'react-native'
+import { View, Image, Text, StyleSheet, Pressable, Modal } from 'react-native'
 import { useState, useContext, useEffect } from 'react'
 import Icon from '../../assets/Icons'
 import { useAccountStore } from '../../stores/account-store'
@@ -10,6 +10,9 @@ import { warningHook } from '../../lib/warning/warning-context'
 import { stylesData } from '../../styles/stylesData'
 import { calculateDate } from '../../utils/calculate-date'
 import FastImage from 'react-native-fast-image'
+import { useCounterStore } from '../../stores/counter-store'
+import { deleteGroupChatAPI } from '../../api/group-api'
+import { deleteChatAPI } from '../../api/chat-api'
 
 type MessageData = {
   senderID: string
@@ -30,10 +33,20 @@ export default function Group({group, messagesStore, navigation}:any){
     text: "",
     time: "",
   });
+  const counterStore = useCounterStore()
+  const [deleteId, setDeleteId] = useState<string>("")
+  const [deleted, setDeleted] = useState(false)
+  const chatStore = useChatStore()
 
   const selectGroup = () => {
     setActiveChat({chat: group, friend: opponentData})
     navigation.navigate('GroupChat', {chatID: group._id})
+  }
+
+  const getParticipantsLabel = (count:number) => {
+    if (count % 10 === 1 && count % 100 !== 11) { return 'участник' }
+    else if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) { return 'участника' }
+    else { return 'участников' }
   }
 
   useEffect(()=>{
@@ -41,7 +54,7 @@ export default function Group({group, messagesStore, navigation}:any){
       setOpponentData({
         avatar: group.image?.code,
         displayedName: group.name,
-        usertag: `${group.members.length} members`,
+        usertag: `${group.members.length} ${getParticipantsLabel(group.members.length)}`,
         type: 'group'
       })
       return
@@ -89,8 +102,18 @@ export default function Group({group, messagesStore, navigation}:any){
     )
   }
 
+  const deleteChat = async(chatInfo: {_id: string, members: string[], type: 'group' | undefined}, opponentData: any) => {
+    if('image' in chatInfo){ await deleteGroupChatAPI(deleteId, user.host) }
+    else { await deleteChatAPI(deleteId, user.host) }
+    socket.emit('removeChat', {chatID: deleteId, recipientID: chatInfo.members})
+    counterStore.resetCounter(deleteId)
+    if(chatStore.activeChat.chat._id == deleteId){navigation.navigate('DialogList')}
+    chatStore.removeChat({chatID: deleteId})
+    setDeleteId("")
+  }
+
   return(
-    <Pressable onPress={selectGroup}>
+    <Pressable onPress={selectGroup} onLongPress={()=>{setDeleted(true), setDeleteId(group._id)}}>
     <View style={styles.messageBlock}>
     {group.image?.code ? <FastImage style={[{height: 40, width: 40, borderRadius: 50}]} source={{uri:group?.image.code}}/> : <></>}
       <View style={styles.messageContent}>
@@ -110,6 +133,24 @@ export default function Group({group, messagesStore, navigation}:any){
         </View>
       </View>
     </View>
+    {deleted &&
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={true}>
+        <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setDeleted(false)}>
+          <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
+            <View style={styles.deleteCont}>
+              <Text style={{fontSize: 20, color: '#fff', fontWeight: 'bold', marginBottom: 10}}>Удалить чат {opponentData.displayedName}?</Text>
+              <Text style={{fontSize: 18, color: '#fff', marginBottom: 10}}>Вы уверены, что хотите удалить этот чат? Этот чат невозможно будет восстановить!</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                <Text style={{fontSize: 20, color: '#2692E5'}} onPress={()=>setDeleted(false)}>Отмена</Text>
+                <Text style={{fontSize: 20, color: stylesData.error}} onPress={()=>deleteChat(group, opponentData)}>Удалить</Text>
+              </View>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>}
     </Pressable>
   )
 }
@@ -172,5 +213,34 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
     borderRadius: 5,
+  },
+  modal: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 1)',
+  },
+  conteiner: {
+    height: '100%',
+    paddingVertical: 10,
+  },
+  modalView: {
+    marginBottom: 10,
+    display: 'flex',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    position: 'absolute',
+    zIndex: 9999,
+  },
+  deleteCont: {
+    width: stylesData.width*0.75,
+    backgroundColor: stylesData.accent1,
+    padding: 15,
+    borderRadius: 10,
   },
 })

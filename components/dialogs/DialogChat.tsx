@@ -19,6 +19,7 @@ import { stylesData } from '../../styles/stylesData'
 import ImagePicker from 'react-native-image-crop-picker'
 import FastImage from 'react-native-fast-image'
 import { removeMessageAPI } from '../../api/message-api'
+import { useCounterStore } from '../../stores/counter-store'
 
 type messageData = {
   message: message,
@@ -48,10 +49,15 @@ export default function DialogChat({navigation, route}:any) {
   const [image, setImage] = useState<any>({format: '', code: ''})
   const [openImage, setOpenImage] = useState<any>({format: '', code: ''})
   const [deleted, setDeleted] = useState<any>(null)
+  const [openTab, setOpenTab] = useState<boolean>(false)
+  const counterStore = useCounterStore()
 
-  //useEffect(() => {
-  //  if (ref.current) { ref.current.scrollToEnd({animated: false}) }
-  //}, [messagesHistory[chatID]?.messages])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (ref.current) { ref.current.scrollToEnd({animated: false}) }
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [messagesHistory[chatID]?.messages])
 
   const sendNewMessage = async(type:any) => {
     if((!chatStore.userChats[chatID]?.inputMessage && !image.format) || !socket){return}
@@ -96,7 +102,7 @@ export default function DialogChat({navigation, route}:any) {
   }
 
   useEffect(() => {
-    return() => clearTimeout(typingTimer) // Clear the timeout if the component is unmounted
+    return() => clearTimeout(typingTimer)
   }, [typingTimer])
 
   const pickMedia = async() => {
@@ -120,7 +126,7 @@ export default function DialogChat({navigation, route}:any) {
 
   const handleRemoveMessage = async(message: message) => {
     tryCatch(async() => {
-      await netRequestHandler(()=>removeMessageAPI({_id: message._id}), warning)
+      await netRequestHandler(()=>removeMessageAPI({_id: message._id}, user.host), warning)
       socket.emit('removeMessage', {messageID: message._id, chatID: chatID, recipientID: chatStore.activeChat.chat.members})
       removeMessage(message)
       setDeleted(null)
@@ -132,36 +138,34 @@ export default function DialogChat({navigation, route}:any) {
   return(
     <SafeAreaView style={styles.chatBox}>
       <View style={styles.topPanel}>
-        <Pressable onPress={()=>navigation.goBack()} style={{marginRight: 38}}><Icon.Arrow color={stylesData.rightMessage} style={{transform:[{rotate: '180deg'}], margin: 10}}/></Pressable>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <Pressable onPress={()=>{navigation.goBack();counterStore.resetCounter(chatID)}} style={{marginRight: 38}}><Icon.Arrow color={stylesData.rightMessage} style={{transform:[{rotate: '180deg'}], margin: 10}}/></Pressable>
+        <Pressable style={{flexDirection: 'row', alignItems: 'center'}} onPress={()=>setOpenTab(true)}>
           {chatStore.activeChat?.friend?.avatar.code ? <FastImage source={{uri:chatStore.activeChat?.friend?.avatar.code}} style={[styles.avatar, {margin: 5}]}/> : <View style={[styles.avatar, {margin: 5}]}/>}
           <View>
             <Text style={styles.displayedName}>{chatStore.activeChat?.friend?.displayedName}</Text>
             <Text style={styles.usertag}>{String(chatStore.activeChat?.friend?.usertag)}
             </Text>
           </View>
-        </View>
+        </Pressable>
         {chatStore.userChats[chatID]?.isTyping ? <Typing/> : <View style={{width: 79}}/>}
       </View>
       <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
         <FlatList
           ref={ref}
-          data={[...(messagesHistory[chatID]?.messages || [])].reverse()}
-          inverted
+          overScrollMode="never"
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          data={messagesHistory[chatID]?.messages || []}
           keyExtractor={(item:any) => item._id}
           renderItem={({item:message, index}:any) => {
             const date = new Date(message.createdAt)
             const nextMessage = {
-              date: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt,
-              samePerson: messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.senderID == message.senderID,
-              differentDate: isDifferentDay(
-                message.createdAt,
-                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
-              ),
-              minutes: differenceInMinutes(
-                message.createdAt,
-                messagesHistory[chatID]?.messages[messagesHistory[chatID]?.messages.length - 2 - index]?.createdAt
-              )
+              date: messagesHistory[chatID]?.messages[index+1]?.createdAt,
+              samePerson: messagesHistory[chatID]?.messages[index+1]?.senderID == message.senderID,
+              differentDate: isDifferentDay(message.createdAt, messagesHistory[chatID]?.messages[index+1]?.createdAt),
+              minutes: differenceInMinutes(message.createdAt, messagesHistory[chatID]?.messages[index+1]?.createdAt),
+              doesNextExist: messagesHistory[chatID]?.messages[index+1] ? true : false
             }
             return(
               <Fragment key={message._id}>
@@ -191,10 +195,7 @@ export default function DialogChat({navigation, route}:any) {
             )
           }}
           ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>Чат пустой!</Text>}
-          contentContainerStyle={{alignItems: 'flex-end', padding: 5}}
-          overScrollMode="never"
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}/>
+          contentContainerStyle={{alignItems: 'flex-end', padding: 5}}/>
         <View style={styles.viewMessages}>
           <Pressable onPress={pickMedia}><Icon.Paperclip color={stylesData.rightMessage}/></Pressable>
           <TextInput 
@@ -246,6 +247,24 @@ export default function DialogChat({navigation, route}:any) {
               <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
                 <Text style={{fontSize: 20, color: '#2692E5'}} onPress={()=>setDeleted(null)}>Отмена</Text>
                 <Text style={{fontSize: 20, color: stylesData.error}} onPress={()=>handleRemoveMessage(deleted)}>Удалить</Text>
+              </View>
+            </View>
+          </View>
+        </Pressable>
+        </Modal>}
+      {openTab &&
+        <Modal
+        animationType="fade"
+        transparent={true}
+        visible={true}>
+        <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setOpenTab(false)}>
+          <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
+            <View style={styles.topInfo}>
+              <FastImage source={{uri:chatStore.activeChat?.friend?.avatar.code}} style={styles.topImage} resizeMode={FastImage.resizeMode.contain}/>
+              <Text style={{...styles.topText, fontSize: 18}}>{chatStore.activeChat?.friend?.displayedName}</Text>
+              <View style={{width: '100%'}}>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}><Icon.User/><Text style={{...styles.topText, marginLeft: 5}}>{chatStore.activeChat?.friend?.usertag}</Text></View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}><Icon.Calendar/><Text style={{...styles.topText, marginLeft: 5}}>{calculateDate(String(chatStore.activeChat?.friend?.createdAt), 'full')}</Text></View>
               </View>
             </View>
           </View>
@@ -413,5 +432,24 @@ const styles = StyleSheet.create({
     backgroundColor: stylesData.accent1,
     padding: 15,
     borderRadius: 10,
+  },
+  topInfo: {
+    padding: 10,
+    height: stylesData.height*0.25,
+    width: stylesData.width*0.7,
+    backgroundColor: stylesData.accent1,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topImage: {
+    height: stylesData.height*0.135,
+    width: stylesData.height*0.135,
+    resizeMode: 'contain',
+    borderRadius: 100,
+  },
+  topText: {
+    fontFamily: 'monospace',
+    color: '#ccc'
   },
 })

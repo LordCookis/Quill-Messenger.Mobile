@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, Pressable, TextInput, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, Pressable, TextInput, Modal, FlatList } from 'react-native'
 import { useContext, useEffect, useState } from 'react'
 import Icon from "../../assets/Icons"
 import Menu from '../settings/Menu'
@@ -18,6 +18,7 @@ import { tryCatch } from '../../utils/try-catch'
 import { netRequestHandler } from '../../utils/net-request-handler'
 import Animated, { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated'
 import { stylesData } from '../../styles/stylesData'
+import { useCounterStore } from '../../stores/counter-store'
 
 export default function DialogList({ navigation }: any) {
   const chatStore = useChatStore()
@@ -35,7 +36,7 @@ export default function DialogList({ navigation }: any) {
     user.setConnect(2)
     if (!socket?.connected) { return }
     tryCatch(async()=>{
-      const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id, ''), warning)
+      const result = await netRequestHandler(()=>fetchUserChatsAPI(user._id, user.host), warning)
       let newObj: any = {}
       result.data?.map(async (chat: chat) => {
         newObj[chat._id] = {...chat, isTyping: false, lastMessage: messagesStore.messagesHistory[chat._id]?.messages[messagesStore.messagesHistory[chat._id]?.messages.length-1]?.createdAt, inputMessage: ""}
@@ -49,7 +50,7 @@ export default function DialogList({ navigation }: any) {
   const createNewChat = async () => {
     if (search == user.usertag) { return }
     tryCatch(async () => {
-      const secondUser = await netRequestHandler(() => fetchUserByTagAPI(search), warning);
+      const secondUser = await netRequestHandler(() => fetchUserByTagAPI(search, user.host), warning);
       const doesChatExist = Object.keys(chatStore.userChats).filter((chat: any) => {
         if (chatStore.userChats[chat].members[0] == secondUser.data._id || chatStore.userChats[chat].members[1] == secondUser.data._id) { return true }
       })
@@ -66,6 +67,18 @@ export default function DialogList({ navigation }: any) {
   const closeMenu = () => { animTranslateX.value = withTiming(-stylesData.width, { duration: 150, easing: Easing.linear }) }
 
   const animatedStyle = useAnimatedStyle(() => { return { transform: [{ translateX: animTranslateX.value }] } })
+
+  const data = Object.keys(chatStore.userChats).map((keyname: string) => chatStore.userChats[keyname]);
+
+  const renderItem = ({ item, index }: { item: any, index: number }) => {
+    if (!focus && !Boolean(item.image)) {
+      return <Dialog key={item._id + index} chat={item} messagesStore={messagesStore.messagesHistory[item._id]} navigation={navigation} />
+    } else if (focus && Boolean(item.image)) {
+      return <Group key={item._id + index} group={item} messagesStore={messagesStore.messagesHistory[item._id]} navigation={navigation} />
+    } else {
+      return null
+    }
+  }
 
   return(
     <>
@@ -96,15 +109,14 @@ export default function DialogList({ navigation }: any) {
           <Pressable style={!focus ? styles.typeFocus : styles.typeNoFocus} onPress={() => setFocus(false)}><Text style={styles.typeText}>СООБЩЕНИЯ</Text></Pressable>
           <Pressable style={focus ? styles.typeFocus : styles.typeNoFocus} onPress={() => setFocus(true)}><Text style={styles.typeText}>ГРУППЫ</Text></Pressable>
         </View>
-        <ScrollView>
-          {!focus ?
-            Object.keys(chatStore.userChats)?.map((keyname: string, index: number) => (
-              !Boolean(chatStore.userChats[keyname].image) ? <Dialog key={chatStore.userChats[keyname]._id + index} chat={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/> : <></>
-            )) :
-            Object.keys(chatStore.userChats)?.map((keyname: string, index: number) => (
-              Boolean(chatStore.userChats[keyname].image) ? <Group key={chatStore.userChats[keyname]._id + index} group={chatStore.userChats[keyname]} messagesStore={messagesStore.messagesHistory[chatStore.userChats[keyname]._id]} navigation={navigation}/> : <></>
-            ))}
-        </ScrollView>
+        <FlatList
+          overScrollMode="never"
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => item._id + index.toString()}/>
       </View>
     </View>
     </>
@@ -113,8 +125,7 @@ export default function DialogList({ navigation }: any) {
 
 const styles = StyleSheet.create({
   chatlist: {
-    height: stylesData.height,
-    width: stylesData.width,
+    flex: 1,
     position: 'relative',
     zIndex: 0,
     display: 'flex',
@@ -149,6 +160,7 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   block: {
+    flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
   },

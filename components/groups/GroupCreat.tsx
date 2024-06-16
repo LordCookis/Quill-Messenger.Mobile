@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, Text, TextInput, StyleSheet, Image, Pressable, Dimensions} from "react-native"
+import { View, Text, TextInput, StyleSheet, Image, Pressable} from "react-native"
 import Icon from '../../assets/Icons'
 import { useState, useEffect, useContext } from 'react'
 import { useChatStore } from '../../stores/chat-store'
@@ -31,7 +31,7 @@ export default function GroupCreat({navigation}:any) {
       const members = Object.values(chatStore.userChats).map((item:any) => item.members)
       const friendsID = members.map((members:any) => members.filter((member:any) => member !== user._id))
       const friends = await Promise.all(friendsID.map(async (friend:any) => {
-        const result = await netRequestHandler(() => fetchUserByIdAPI(friend[0]), warning)
+        const result = await netRequestHandler(() => fetchUserByIdAPI(friend[0], user.host), warning)
         return result.data
       }))
       setMembers(friends)

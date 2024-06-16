@@ -5,7 +5,7 @@ import axios from "axios"
 const api_url = 'http://192.168.1.208:4000/api'
 
 const loginAPI = async(userdata: {usertag:string, password:string}, host:string) => {
-  const url = `http://${'26.38.55.97:4000'}/api/user/login`
+  const url = `http://${host}/api/user/login`
   try{
     const result = await axios.post(url, {
       usertag: userdata.usertag,
@@ -26,7 +26,7 @@ const loginAPI = async(userdata: {usertag:string, password:string}, host:string)
 }
 
 const registerAPI = async(userdata: {usertag:string, password:string, confirmPassword:string}, host:string) => {
-  const url = `http://${'26.38.55.97:4000'}/api/user/register`
+  const url = `http://${host}/api/user/register`
   if(userdata.password !== userdata.confirmPassword){
     return {message: "Passwords do not match!", status: 400};
   }
@@ -51,7 +51,7 @@ const registerAPI = async(userdata: {usertag:string, password:string, confirmPas
 
 const fetchAllUsersAPI = async(host:string) => {
   try{
-    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/user/getall`)
+    const result = await axios.get(`http://${host}/api/user/getall`)
     return({
       data: result.data,
       status: 200
@@ -66,9 +66,9 @@ const fetchAllUsersAPI = async(host:string) => {
   }
 }
 
-const fetchUserByIdAPI = async(_id:string) => {
+const fetchUserByIdAPI = async(_id:string, host:string) => {
   try{
-    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/user/find/${_id}`)
+    const result = await axios.get(`http://${host}/api/user/find/${_id}`)
     return({
       data: result.data,
       status: 200
@@ -83,9 +83,9 @@ const fetchUserByIdAPI = async(_id:string) => {
   }
 }
 
-const fetchUserByTagAPI = async(usertag:string) => {
+const fetchUserByTagAPI = async(usertag:string, host:string) => {
   try{
-    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/user/findtag/${usertag}`)
+    const result = await axios.get(`http://${host}/api/user/findtag/${usertag}`)
     return({
       data: result.data,
       status: 200
@@ -102,7 +102,7 @@ const fetchUserByTagAPI = async(usertag:string) => {
 
 const updateUserProfileAPI = async(data: {_id:string, avatar?:any, displayedName?:string}, host:string) => {
   try{
-    const result = await axios.post(`http://${'26.38.55.97:4000'}/api/user/update`, data)
+    const result = await axios.post(`http://${host}/api/user/update`, data)
     return({
       data: result.data,
       status: 200
@@ -125,4 +125,58 @@ const logoutAPI = async() => {
   }
 }
 
-export {loginAPI ,registerAPI, logoutAPI, fetchAllUsersAPI, fetchUserByIdAPI, fetchUserByTagAPI, updateUserProfileAPI}
+const deleteAccount = async(userID:string, host:string) => {
+  try{
+    const result = await axios.get(`http://${host}/api/user/delete/${userID}`)
+    return({
+      data: result.data,
+      status: 200
+    })
+  } catch (err: any) {
+    return({
+      data: null,
+      title: `Not able to delete account`,
+      message: err.response?.data.message || "The server is possibly offline :<",
+      status: err.response?.status || 400,
+    })
+  }
+}
+
+const changePasswordAPI = async(data: {userId: string, oldPassword: string, newPassword: string}, host:string) => {
+  const url = `http://${host}/api/user/changePassword`
+  try{
+    const result = await axios.post(url, data)
+    return({
+      data: result.data,
+      status: 200
+    })
+  } catch (err: any) {
+    return({
+      data: null,
+      title: `Not able to change password`,
+      message: err.response?.data.message || "The server is possibly offline :<",
+      status: err.response?.status || 400,
+    })
+  }
+}
+
+const fetchRandomUserAPI = async(userid: string, host:string) => {
+  try{
+    console.log(userid)
+    const result = await axios.get(`http://${host}/api/user/randomuser?userId=${userid}`)
+    return({
+      data: result.data,
+      status: 200
+    })
+  } catch (err: any) {
+    return({
+      data: null,
+      title: `Not able to fetch random user`,
+      message: err.response?.data.message || "The server is possibly offline :<",
+      status: err.response?.status || 400,
+    })
+  }
+}
+
+
+export {loginAPI ,registerAPI, logoutAPI, fetchAllUsersAPI, fetchUserByIdAPI, fetchUserByTagAPI, updateUserProfileAPI, deleteAccount, changePasswordAPI, fetchRandomUserAPI}

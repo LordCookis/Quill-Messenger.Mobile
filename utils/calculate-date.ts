@@ -1,7 +1,7 @@
 type dateType = "full"|"fullshort"|"date"|"dateshort"|"day"|"count"|"time"
 
-const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const monthsFull = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+const monthsShort = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
 
 export function calculateDate(timestamp: string, type: dateType){
   let date = new Date(timestamp)
@@ -18,7 +18,7 @@ export function calculateDate(timestamp: string, type: dateType){
     return `${date.getDate()}-${[date.getMonth()+1]}-${date.getFullYear()}`
 
   if(type === 'day')
-    return `${date.toLocaleDateString('en-EN', {weekday: 'long'})}`
+    return `${date.toLocaleDateString('ru-RU', {weekday: 'long'})}`
 
   if(type === 'time')
     return `${getHours(date)}:${getMinutes(date)}`
@@ -34,14 +34,14 @@ export function calculateDate(timestamp: string, type: dateType){
     if(diff == 0)
       return `${getHours(unaffectedDate)}:${getMinutes(unaffectedDate)}`
     if(diff == 1)
-      return 'Yesterday'
+      return 'Вчера'
     if(diff > 1 && diff <= 6)
-      return `${date.toLocaleDateString('en-EN', {weekday: 'long'})}`
+      return `${date.toLocaleDateString('ru-RU', {weekday: 'long'})}`
     if(diff > 6 && diff <= 13)
       return `${date.getDate()}-${monthsShort[date.getMonth()]}-${date.getFullYear()-2000}`
   }
 
-  return `${date.getDate()} - ${date.toLocaleDateString('en-EN', {weekday: 'long'})} - ${date.getFullYear()} - ${getHours(date)}:${getMinutes(date)}:${getSeconds(date)}`
+  return `${date.getDate()} - ${date.toLocaleDateString('ru-RU', {weekday: 'long'})} - ${date.getFullYear()} - ${getHours(date)}:${getMinutes(date)}:${getSeconds(date)}`
 }
 
 const getHours = (date: Date) => {

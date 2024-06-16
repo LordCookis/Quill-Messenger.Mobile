@@ -3,7 +3,10 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export type chat = {
-  image(image: any): unknown,
+  image?: {
+    format: string,
+    code: string
+  }
   _id: string,
   members: string[],
   createdAt?: string,

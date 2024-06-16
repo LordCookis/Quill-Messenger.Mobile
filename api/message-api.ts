@@ -3,7 +3,7 @@ const api_url = 'http://192.168.1.208:4000/api'
 
 const fetchChatMessages = async(chatID:string, host:string) => {
   try{
-    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/message/${chatID}`)
+    const result = await axios.get(`http://${host}/api/message/${chatID}`)
     return({
       data: result.data,
       status: 200,
@@ -21,7 +21,7 @@ const fetchChatMessages = async(chatID:string, host:string) => {
 // fetchLatestMessage
 const fetchLatestMessageAPI = async(chatID:string, host:string) => {
   try{
-    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/message/findLatest/${chatID}`)
+    const result = await axios.get(`http://${host}/api/message/findLatest/${chatID}`)
     return({
       data: result.data,
       status: 200,
@@ -40,7 +40,7 @@ const fetchLatestMessageAPI = async(chatID:string, host:string) => {
 const sendMessageAPI = async(chatID:string, senderID:string, type:any, text:any, host:string) => {
   console.log({chatID, senderID, type, text})
   try{
-    const result = await axios.post(`http://${'26.38.55.97:4000'}/api/message/send`, {chatID, senderID, type, text})
+    const result = await axios.post(`http://${host}/api/message/send`, {chatID, senderID, type, text})
     return({
       data: result.data,
       status: 200,
@@ -55,9 +55,9 @@ const sendMessageAPI = async(chatID:string, senderID:string, type:any, text:any,
   }
 }
 
-const removeMessageAPI = async({_id} : {_id: string}) => {
+const removeMessageAPI = async({_id} : {_id: string}, host:string) => {
   try{
-    const result = await axios.get(`http://${'26.38.55.97:4000'}/api/message/remove/${_id}`)
+    const result = await axios.get(`http://${host}/api/message/remove/${_id}`)
     return({
       data: result.data,
       status: 200,
