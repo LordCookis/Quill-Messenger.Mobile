@@ -39,7 +39,6 @@ const deleteGroupChatAPI = async(chatID: string, host:string) => {
 }
 
 const editGroupAPI = async({_id, data}: any, host:string) => {
-  console.log("EDIT GROUP", _id, data)
   try{
     const result = await axios.post(`http://${host}/api/group/edit`, {_id, ...data})
     return({

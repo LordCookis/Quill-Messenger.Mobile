@@ -20,6 +20,8 @@ import ImagePicker from 'react-native-image-crop-picker'
 import { useUserCache } from '../../stores/user-cache'
 import FastImage from 'react-native-fast-image'
 import { useCounterStore } from '../../stores/counter-store'
+import { removeMessageAPI } from '../../api/message-api'
+import { editGroupAPI } from "../../api/group-api"
 
 type messageData = {
   message: message,
@@ -44,7 +46,7 @@ export default function GroupChat({navigation, route}:any) {
   const ref = useRef<any>(null)
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const [typingTimer, setTypingTimer] = useState<any>(null)
-  const {messagesHistory, addMessage}:any = useMessageStore()
+  const {messagesHistory, addMessage, removeMessage}:any = useMessageStore()
   const [messege, setMessege] = useState<string>('')
   const [modal, setModal] = useState<boolean>(false)
   const [image, setImage] = useState<any>({format: '', code: ''})
@@ -52,11 +54,19 @@ export default function GroupChat({navigation, route}:any) {
   const [deleted, setDeleted] = useState<any>(null)
   const [openTab, setOpenTab] = useState<boolean>(false)
   const counterStore = useCounterStore()
+  const [groupName, setGroupName] = useState(chatStore.activeChat?.friend?.displayedName)
+  const [newData, setNewData] = useState({
+    name: chatStore.activeChat?.friend?.displayedName,
+    image: {
+      format: 'png',
+      code: chatStore.activeChat?.friend?.avatar
+    },
+  })
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (ref.current) { ref.current.scrollToEnd({animated: false}) }
-    }, 1000)
+    }, 250)
     return () => clearTimeout(timer)
   }, [messagesHistory[chatID]?.messages])
 
@@ -106,7 +116,7 @@ export default function GroupChat({navigation, route}:any) {
     return() => clearTimeout(typingTimer)
   }, [typingTimer])
 
-  const pickMedia = async() => {
+  const pickMedia = async(type:number) => {
     try {
       const image = await ImagePicker.openPicker({
         cropping: true,
@@ -117,10 +127,34 @@ export default function GroupChat({navigation, route}:any) {
       })
       if (image) {
         const file = `data:${image.mime};base64,${image.data}`
-        setImage({format: 'png', code: file})
+        if (type === 1) { setImage({format: 'png', code: file}) }
+        if (type === 2) { setNewData({...newData, image: {format: 'png', code: file}}) }
         setModal(true)
       }
     } catch (err:any) { console.log('Ошибка при выборе файла', err.message) }
+  }
+
+  const handleRemoveMessage = async(message: message) => {
+    tryCatch(async() => {
+      await netRequestHandler(()=>removeMessageAPI({_id: message._id}, user.host), warning)
+      socket.emit('removeMessage', {messageID: message._id, chatID: chatID, recipientID: chatStore.activeChat.chat.members})
+      removeMessage(message)
+      setDeleted(null)
+    })
+  }
+
+  const saveGroupInfo = async() => {
+    try{
+      const result = await editGroupAPI({_id: chatStore.userChats[chatID]._id, data: newData}, user.host)
+      const {image, name} = result.data
+      if(!result.data){return}
+      chatStore.editChat({_id: chatStore.activeChat.chat._id, name, image})
+      chatStore.setActiveChat({chat: {...chatStore.activeChat.chat, name, image}, friend: {... chatStore.activeChat.friend, displayedName: name, image}})
+      socket.emit('editGroup', {data: {_id: chatStore.activeChat.chat._id, name, image}, recipientID: chatStore.activeChat.chat.members})
+      user.incTrigger()
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const Typing = () => <Text style={styles.typing}><Icon.AnimatedPen/> Пишет...</Text> 
@@ -159,7 +193,7 @@ export default function GroupChat({navigation, route}:any) {
             }
             return(
               <Fragment key={message._id}>
-                <View style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage}>
+                <Pressable style={message.senderID == user._id ? styles.rightMessage : styles.leftMessage} onLongPress={()=>setDeleted(message.senderID == user._id ? message: null)}>
                   {message.type === 'text' ?
                   <View style={styles.friend}>
                     {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? message.senderID !== user._id ? (<FastImage source={{uri:userCache.userCache[message.senderID]?.avatar.code}} style={[styles.avatar, {margin: 5, marginLeft: 10}]}/>) : (<></>) : <View style={{width: 55}}/>}
@@ -173,7 +207,7 @@ export default function GroupChat({navigation, route}:any) {
                     message.type === 'media' ?
                       <View style={styles.friend}>
                         {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 && message.senderID !== user._id ? message.senderID !== user._id ? (<FastImage source={{uri:userCache.userCache[message.senderID]?.avatar.code}} style={[styles.avatar, {margin: 5, marginLeft: 10}]}/>) : (<></>)  : <View style={{width: 55}}/>}
-                        <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]} onPress={()=>setOpenImage({...message.text})}>
+                        <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]} onPress={()=>setOpenImage({...message.text})} onLongPress={()=>{setOpenImage({format: '', code: ''});setDeleted(message.senderID == user._id ? message: null)}}>
                           <FastImage source={{uri:(message.text as {format:string; code:string}).code}} style={styles.messageImage} />
                           {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id && <Text style={[ styles.timeSent, message.senderID == user._id ? { textAlign: 'right' } : { textAlign: 'left' }, {margin: 2.5, marginHorizontal: 5}]}>
                             {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
@@ -182,7 +216,7 @@ export default function GroupChat({navigation, route}:any) {
                       </View>  :
                       <View style={styles.friend}>
                         {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? message.senderID !== user._id ? (<FastImage source={{uri:userCache.userCache[message.senderID]?.avatar.code}} style={[styles.avatar, {margin: 5, marginLeft: 10}]}/>) : (<></>)  : <View style={{width: 55}}/>}
-                        <View style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]}>
+                        <Pressable style={[message.senderID == user._id ? styles.rightText : styles.leftText, {padding: 0}]} onLongPress={()=>{setOpenImage({format: '', code: ''});setDeleted(message.senderID == user._id ? message: null)}}>
                           <Pressable onPress={()=>setOpenImage({...message.text})}>
                             <FastImage source={{uri:(message.text as {format:string; code:string; text:string}).code}} style={{...styles.messageImage, borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}/>
                           </Pressable>
@@ -192,9 +226,9 @@ export default function GroupChat({navigation, route}:any) {
                               {((!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5) && message.senderID !== user._id ? `${String(userCache.userCache[message.senderID]?.displayedName)} | ${calculateDate(date.toString(), 'time')}` : `${calculateDate(date.toString(), 'time')}`}
                             </Text>
                           </View>
-                        </View>
+                        </Pressable>
                       </View>}
-                </View>
+                </Pressable>
                 {(!nextMessage.samePerson && !nextMessage.differentDate) || nextMessage.minutes > 5 ? <View style={styles.spacing} /> : <></>}
                 {nextMessage.differentDate ? <View style={styles.date}><View style={styles.line} /><Text style={styles.dateText}>{calculateDate(nextMessage.date, 'date')}</Text><View style={styles.line} /></View> : <></>}
               </Fragment>
@@ -203,7 +237,7 @@ export default function GroupChat({navigation, route}:any) {
           ListEmptyComponent={()=><Text style={[{color: stylesData.white, fontSize: 15, textAlign: 'center'}]}>Чат пустой!</Text>}
           contentContainerStyle={{alignItems: 'flex-end', padding: 5}}/>
         <View style={styles.viewMessages}>
-          <Pressable onPress={pickMedia}><Icon.Paperclip color={stylesData.rightMessage}/></Pressable>
+          <Pressable onPress={()=>pickMedia(1)}><Icon.Paperclip color={stylesData.rightMessage}/></Pressable>
           <TextInput 
             style={styles.inputMessages}
             value={messege}
@@ -245,18 +279,19 @@ export default function GroupChat({navigation, route}:any) {
           animationType="fade"
           transparent={true}
           visible={true}
-          onRequestClose={() => setOpenTab(false)}>
+          onRequestClose={()=>setOpenTab(false)}>
           <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setOpenTab(false)}>
             <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
               <View style={styles.topInfo}>
-                <FastImage source={{uri:chatStore.activeChat?.friend?.avatar}} style={styles.topImage} resizeMode={FastImage.resizeMode.contain}/>
-                <Text style={{...styles.topText, fontSize: 18}}>{chatStore.activeChat?.friend?.displayedName}</Text>
+                <Pressable onLongPress={()=>pickMedia(2)}><FastImage source={{uri:chatStore.activeChat?.friend?.avatar}} style={styles.topImage} resizeMode={FastImage.resizeMode.contain}/></Pressable>
+                <TextInput style={{...styles.topText, fontSize: 18, paddingVertical: 0}} value={groupName} onChangeText={(e:string)=>{setGroupName(e);setNewData({...newData, name: e})}}/>
+                <Text onPress={()=>saveGroupInfo()} style={styles.save}>Сохранить</Text>
                 <View style={{flexDirection: 'row', alignItems: 'center', width: '100%'}}><Icon.User/><Text style={{...styles.topText, marginLeft: 5}}>{chatStore.activeChat?.friend?.usertag}</Text></View>
                 <FlatList
                   overScrollMode="never"
                   showsVerticalScrollIndicator={false}
                   showsHorizontalScrollIndicator={false}
-                  data={chatStore.activeChat.chat.members}
+                  data={chatStore.activeChat.chat?.members}
                   keyExtractor={(item:any) => item}
                   renderItem={({item, index}:any) => {
                     if (!Boolean(userCache.userCache[item]?._id)) { userCache.addUserCache(item, user.host) }
@@ -270,6 +305,24 @@ export default function GroupChat({navigation, route}:any) {
                       </View>
                     )
                   }}/>
+              </View>
+            </View>
+          </Pressable>
+        </Modal>}
+        {deleted &&
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={true}>
+          <Pressable style={{...styles.modal, backgroundColor: 'rgba(0,0,0,0.5)'}} onPress={()=>setDeleted(null)}>
+            <View style={{...styles.conteiner, alignItems: 'center', justifyContent: 'center'}}>
+              <View style={styles.deleteCont}>
+                <Text style={{fontSize: 20, color: '#fff', fontWeight: 'bold', marginBottom: 10}}>Удалить сообщение</Text>
+                <Text style={{fontSize: 18, color: '#fff', marginBottom: 10}}>Вы точно хотите удалить это сообщение?</Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                  <Text style={{fontSize: 20, color: '#2692E5'}} onPress={()=>setDeleted(null)}>Отмена</Text>
+                  <Text style={{fontSize: 20, color: stylesData.error}} onPress={()=>handleRemoveMessage(deleted)}>Удалить</Text>
+                </View>
               </View>
             </View>
           </Pressable>
@@ -455,5 +508,19 @@ const styles = StyleSheet.create({
   topText: {
     fontFamily: 'monospace',
     color: '#ccc'
+  },
+  deleteCont: {
+    width: stylesData.width*0.7,
+    backgroundColor: stylesData.accent1,
+    padding: 15,
+    borderRadius: 10,
+  },
+  save: {
+    padding: 5,
+    fontFamily: 'monospace',
+    fontSize: 15,
+    backgroundColor: stylesData.rightMessage,
+    color: stylesData.white,
+    borderRadius: 10,
   },
 })

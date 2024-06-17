@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, TextInput, Alert } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
 import { useContext, useEffect, useState } from "react"
 import Icon from "../../assets/Icons"
 import { loginAPI, registerAPI } from "../../api/user-api"
@@ -109,11 +109,11 @@ export default function Login({navigation}:any) {
           placeholder='Хост'
           placeholderTextColor={'#cccccc'}
           onFocus={()=>handleFocus(4)}/>
-        <Text
+        <TouchableOpacity
           onPress={tab ? registerNewAccount : loginAccount}
-          style={(!userInputs.usertag || !userInputs.password.length) ? styles.loginButton : styles.activeButton}
+          style={(!userInputs.usertag || !userInputs.password.length) ? styles.activeButton : styles.loginButton}
           disabled={!userInputs.usertag || !userInputs.password.length}
-        >{tab ? "Зарегистрироваться" : "Войти"}</Text>
+        ><Text style={{borderRadius: 10, fontFamily: 'monospace', textAlign: 'center', color: stylesData.white,}}>{tab ? "Зарегистрироваться" : "Войти"}</Text></TouchableOpacity>
         <Text onPress={()=>setTab(!tab)} style={styles.tabButton}>{!tab ? "У меня нет аккаунта!" : "У меня есть аккаунт!"}</Text>
       </View>
       {!tab || <View>

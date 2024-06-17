@@ -26,6 +26,8 @@ interface AccoutStore {
   setUser: (data: userData) => void,
   clearAccountStore: () => void,
   setConnect: (info: number) => void,
+  trigger: number,
+  incTrigger: () => void
 }
 
 export const useAccountStore = create<AccoutStore>()(persist((set) => ({
@@ -38,6 +40,8 @@ export const useAccountStore = create<AccoutStore>()(persist((set) => ({
   displayedName: "",
   host: "",
   connect: 0,
+  trigger: 0,
+  incTrigger: () => set((state) => ({trigger: state.trigger + 1})),
   setUser: (userdata: userData) => set(() => ({
     _id: userdata._id,
     usertag: userdata.usertag,

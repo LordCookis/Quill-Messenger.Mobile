@@ -98,6 +98,13 @@ export default function SocketWrapper({children, _id}: {children: React.ReactNod
     socket.on('addGroup', (data: chat) => {
       chatStore.addNewChat(data)
     })
+    socket.on('editGroup', (data: {_id: string, name: string, image: {format: string, code: string}}) => {
+      chatStore.editChat({_id: data._id, name: data.name, image: data.image})
+      if(chatStore.activeChat.chat._id == data._id){
+        chatStore.setActiveChat({chat: {...chatStore.activeChat.chat, name: data.name, image: data.image}, friend: {...chatStore.activeChat.friend, displayedName: data.name, image: data.image}})
+      }
+      accountStore.incTrigger()
+    })
     socket.on('userDeleted', (data: {userID: string}) => {
       console.log("REMOVE user", data)
       Object.keys(chatStore.userChats).forEach((chatID) => {

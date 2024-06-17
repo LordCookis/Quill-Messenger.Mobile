@@ -50,16 +50,23 @@ export default function Group({group, messagesStore, navigation}:any){
   }
 
   useEffect(()=>{
-    if(group.members.length > 2){
-      setOpponentData({
-        avatar: group.image?.code,
-        displayedName: group.name,
-        usertag: `${group.members.length} ${getParticipantsLabel(group.members.length)}`,
-        type: 'group'
-      })
-      return
-    }
-  }, [])
+    setDialogData()
+  }, [opponentData, socket?.connected])
+
+  useEffect(()=>{
+    setDialogData(true)
+  },[user.trigger])
+
+  const setDialogData = (ignoreAll: boolean = false) => {
+    if((opponentData || !socket?.connected || !group?.members?.length) && !ignoreAll){return}
+    setOpponentData({
+      avatar: group.image?.code,
+      displayedName: group.name,
+      usertag: `${group?.members?.length || 0} ${getParticipantsLabel(group?.members?.length || 0)}`,
+      type: 'group'
+    })
+    return
+  }
 
   useEffect(()=>{
     if(!messagesStore?.messages?.length){return}

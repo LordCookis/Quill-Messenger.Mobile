@@ -55,7 +55,7 @@ export default function DialogChat({navigation, route}:any) {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (ref.current) { ref.current.scrollToEnd({animated: false}) }
-    }, 1000)
+    }, 250)
     return () => clearTimeout(timer)
   }, [messagesHistory[chatID]?.messages])
 
