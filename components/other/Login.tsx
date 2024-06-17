@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native'
 import { useContext, useEffect, useState } from "react"
 import Icon from "../../assets/Icons"
 import { loginAPI, registerAPI } from "../../api/user-api"
@@ -13,6 +13,7 @@ import { warningHook } from '../../lib/warning/warning-context'
 import { userData } from '../../types/types'
 import { stylesData } from '../../styles/stylesData'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Pressable } from 'react-native'
 
 export default function Login({navigation}:any) {
   const [tab, setTab] = useState<boolean>(false)
@@ -26,7 +27,7 @@ export default function Login({navigation}:any) {
   const [inputFocus, setInputFocus] = useState<number>(0)
   const [rawInput, setRawInput] = useState<string>('')
   const user = useAccountStore()
-  const [gay, setGay] = useState<any>('Я гей')
+  const [view, setView] = useState<boolean>(false)
 
   useEffect(() => {
     setUserInputs({...userInputs, usertag: inputFilter(rawInput)})
@@ -47,19 +48,15 @@ export default function Login({navigation}:any) {
   const registerNewAccount = async() => {
     try {
       const result = await registerAPI(userInputs, userInputs.host)
-      passLoginScreen({...result.data, host: userInputs.host})
-    } catch(err:any) { console.log('=(') }
+      if (result.status === 200) { passLoginScreen({...result.data, host: userInputs.host}) }
+    } catch(err:any) { Alert.alert(err) }
   }
 
   const loginAccount = async() => {
     try {
       const result = await loginAPI(userInputs, userInputs.host)
-      if (result.status !== 200) { setGay(result.message) }
-      else { passLoginScreen({...result.data, host: userInputs.host}) }
-    } catch(err:any) { 
-      console.log(err)
-      setGay(err)
-    }
+      if (result.status === 200) { passLoginScreen({...result.data, host: userInputs.host}) }
+    } catch(err:any) { Alert.alert(err) }
   }
 
   const handleFocus = (inputNumber:number) => { setInputFocus(inputNumber) }
@@ -69,7 +66,7 @@ export default function Login({navigation}:any) {
       <View style={styles.loginContent}>
         <View style={styles.loginView}>
           <View style={styles.titleView}>
-            <Icon.Quill/><Text style={styles.loginTitle}> Quill Messenger</Text>
+            <Pressable onPress={()=>setView(!view)}><Icon.Quill/></Pressable><Text style={styles.loginTitle}> Quill Messenger</Text>
           </View>
           <Text style={[{margin: 5, color: '#ffffff', fontSize: 18, fontWeight: 'bold',}]}>Добро пожаловать!</Text>
           <Text style={styles.description}>
@@ -102,13 +99,13 @@ export default function Login({navigation}:any) {
           secureTextEntry={true}
           onFocus={()=>handleFocus(3)}
         />}
-        <TextInput
+        {view && <TextInput
           onChangeText={(e)=>setUserInputs({...userInputs, host: e})}
           value={userInputs.host}
           style={[styles.loginInput, {backgroundColor: inputFocus === 4 ? stylesData.messageInputHover : stylesData.loginInput}]}
           placeholder='Хост'
           placeholderTextColor={'#cccccc'}
-          onFocus={()=>handleFocus(4)}/>
+          onFocus={()=>handleFocus(4)}/>}
         <TouchableOpacity
           onPress={tab ? registerNewAccount : loginAccount}
           style={(!userInputs.usertag || !userInputs.password.length) ? styles.activeButton : styles.loginButton}
@@ -122,7 +119,6 @@ export default function Login({navigation}:any) {
         {userInputs.password.length < 8 ? <Text style={styles.warningLabels}>* Ваш пароль должен быть длиннее 8 символов!</Text> : <></>}
         {userInputs.password !== userInputs.confirmPassword ? <Text style={styles.warningLabels}>* Пароли не совподают!</Text> : <></>}
       </View>}
-      <Text style={styles.warningLabels}>{gay}</Text>
     </View>
   )
 }
